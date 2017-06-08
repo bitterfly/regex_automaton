@@ -1,6 +1,8 @@
 package dfa
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Transition struct {
 	letter rune
@@ -31,6 +33,14 @@ func (dt *DeltaTransitions) traverse(word string) (bool, int) {
 		}
 	}
 	return true, state
+}
+
+func EmptyAutomaton() *DFA {
+	return &DFA{
+		maxState:    1,
+		finalStates: nil,
+		delta:       *NewDeltaTransitions(make(map[Transition]int)),
+	}
 }
 
 func (dt *DeltaTransitions) commonPrefix(word string) (string, int) {

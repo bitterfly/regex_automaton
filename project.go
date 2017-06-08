@@ -21,7 +21,7 @@ func main() {
 	// first.FindCommonPrefix("pliok")
 	// first.FindCommonPrefix("aca")
 
-	test := dfa.NewDFA(1, nil, make(map[dfa.Transition]int))
+	test := dfa.EmptyAutomaton()
 	test.Print()
 	test.AddWord(1, "bla")
 	test.AddWord(2, "gs")
