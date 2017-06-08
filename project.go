@@ -1,27 +1,30 @@
 package main
 
-import (
-	"github.com/bitterfly/pka/dfa"
-)
+import "github.com/bitterfly/pka/dfa"
 
 func main() {
-	alphabet := "abc"
-	states := 3
-	finishStates := []int{3}
+	// states := 3
+	// finishStates := []int{3}
 
-	delta := map[dfa.Transition]int{
-		*dfa.NewTransition(1, 'a'): 2,
-		*dfa.NewTransition(1, 'b'): 1,
-		*dfa.NewTransition(2, 'c'): 3,
-	}
+	// delta := map[dfa.Transition]int{
+	// 	*dfa.NewTransition(1, 'a'): 2,
+	// 	*dfa.NewTransition(1, 'b'): 1,
+	// 	*dfa.NewTransition(2, 'c'): 3,
+	// }
 
-	first := dfa.NewDFA(alphabet, states, finishStates, delta)
-	first.PrintFunction()
-	// first.Traverse("bba")
-	// first.Traverse("bbac")
-	// first.Traverse("bbaca")
-	first.FindCommonPrefix("baba")
-	first.FindCommonPrefix("pliok")
-	first.FindCommonPrefix("aca")
+	// first := dfa.NewDFA(states, finishStates, delta)
+	// first.PrintFunction()
+	// // first.Traverse("bba")
+	// // first.Traverse("bbac")
+	// // first.Traverse("bbaca")
+	// first.FindCommonPrefix("baba")
+	// first.FindCommonPrefix("pliok")
+	// first.FindCommonPrefix("aca")
+
+	test := dfa.NewDFA(1, nil, make(map[dfa.Transition]int))
+	test.Print()
+	test.AddWord(1, "bla")
+	test.AddWord(2, "gs")
+	test.Print()
 
 }

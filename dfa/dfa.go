@@ -45,22 +45,52 @@ func (dt *DeltaTransitions) commonPrefix(word string) (string, int) {
 	return "", last_state
 }
 
+func (dt *DeltaTransitions) addWord(initialState int, firstNewState int, word string) {
+	currentState := firstNewState
+	for index, letter := range word {
+		if index == 0 {
+			dt.data[*NewTransition(initialState, letter)] = currentState
+		} else {
+			dt.data[*NewTransition(currentState, letter)] = currentState + 1
+			currentState += 1
+		}
+	}
+}
+
 //states are consecutive numbers
 //start state is always 1
 type DFA struct {
-	alphabet    string
 	maxState    int
 	finalStates []int
 	delta       DeltaTransitions
 }
 
-func NewDFA(alphabet string, maxState int, finalStates []int, delta map[Transition]int) *DFA {
+func NewDFA(maxState int, finalStates []int, delta map[Transition]int) *DFA {
 	return &DFA{
-		alphabet:    alphabet,
 		maxState:    maxState,
 		finalStates: finalStates,
 		delta:       *NewDeltaTransitions(delta),
 	}
+}
+
+// func BuildDFAFromDictionary(dictionary []string) {
+// 	var checked []int = nil
+// 	dfa := NewDFA(0, nil, nil)
+// }
+
+func (d *DFA) AddWord(state int, word string) {
+	d.addNewStates(len(word))
+	d.finalStates = append(d.finalStates, d.maxState)
+	d.delta.addWord(state, d.maxState-len(word)+1, word)
+}
+
+//===========================Human Friendly======================================
+
+func (d *DFA) Print() {
+	fmt.Printf("====DFA====\n")
+	fmt.Printf("Max: %d, Final: %v\n", d.maxState, d.finalStates)
+	d.PrintFunction()
+	fmt.Printf("\n====AFD====\n")
 }
 
 func (d *DFA) PrintFunction() {
@@ -81,4 +111,8 @@ func (d *DFA) Traverse(word string) {
 func (d *DFA) FindCommonPrefix(word string) {
 	remaining, state := d.delta.commonPrefix(word)
 	fmt.Printf("Word: %s\nRemaining: %s, last_state: %d\n\n", word, remaining, state)
+}
+
+func (d *DFA) addNewStates(number int) {
+	d.maxState += number
 }
