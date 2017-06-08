@@ -14,20 +14,47 @@ func NewTransition(state int, letter rune) *Transition {
 }
 
 type DeltaTransitions struct {
-	data map[Transition]int
+	transitionToState map[Transition]int
+	stateToTransition map[int][]Transition
 }
 
-func NewDeltaTransitions(data map[Transition]int) *DeltaTransitions {
-	return &DeltaTransitions{
-		data: data,
+func NewDeltaTransitions(transitionToState map[Transition]int) *DeltaTransitions {
+	stateToTransition := make(map[int][]Transition)
+
+	for transition, goalState := range transitionToState {
+		transitions, ok := stateToTransition[transition.state]
+		newTransition := *NewTransition(goalState, transition.letter)
+		if !ok {
+			stateToTransition[transition.state] = []Transition{newTransition}
+		} else {
+			stateToTransition[transition.state] = append(transitions, newTransition)
+		}
 	}
+
+	return &DeltaTransitions{
+		transitionToState: transitionToState,
+		stateToTransition: stateToTransition,
+	}
+}
+
+func (dt *DeltaTransitions) AddTransition(initialState int, letter rune, goalState int) {
+	dt.transitionToState[*NewTransition(initialState, letter)] = goalState
+
+	transitions, ok := dt.stateToTransition[initialState]
+	newTransition := *NewTransition(goalState, letter)
+	if !ok {
+		dt.stateToTransition[initialState] = []Transition{newTransition}
+	} else {
+		dt.stateToTransition[initialState] = append(transitions, newTransition)
+	}
+
 }
 
 func (dt *DeltaTransitions) traverse(word string) (bool, int) {
 	state := 1
 	ok := true
 	for _, letter := range word {
-		state, ok = (dt.data[*NewTransition(state, letter)])
+		state, ok = (dt.transitionToState[*NewTransition(state, letter)])
 		if !ok {
 			return false, -1
 		}
@@ -35,18 +62,10 @@ func (dt *DeltaTransitions) traverse(word string) (bool, int) {
 	return true, state
 }
 
-func EmptyAutomaton() *DFA {
-	return &DFA{
-		maxState:    1,
-		finalStates: nil,
-		delta:       *NewDeltaTransitions(make(map[Transition]int)),
-	}
-}
-
 func (dt *DeltaTransitions) commonPrefix(word string) (string, int) {
 	last_state := 1
 	for index, letter := range word {
-		state, ok := (dt.data[*NewTransition(last_state, letter)])
+		state, ok := (dt.transitionToState[*NewTransition(last_state, letter)])
 		if !ok {
 			return word[index:], last_state
 		}
@@ -59,9 +78,9 @@ func (dt *DeltaTransitions) addWord(initialState int, firstNewState int, word st
 	currentState := firstNewState
 	for index, letter := range word {
 		if index == 0 {
-			dt.data[*NewTransition(initialState, letter)] = currentState
+			dt.AddTransition(initialState, letter, currentState)
 		} else {
-			dt.data[*NewTransition(currentState, letter)] = currentState + 1
+			dt.AddTransition(currentState, letter, currentState+1)
 			currentState += 1
 		}
 	}
@@ -83,10 +102,22 @@ func NewDFA(maxState int, finalStates []int, delta map[Transition]int) *DFA {
 	}
 }
 
-// func BuildDFAFromDictionary(dictionary []string) {
-// 	var checked []int = nil
-// 	dfa := NewDFA(0, nil, nil)
-// }
+func EmptyAutomaton() *DFA {
+	return &DFA{
+		maxState:    1,
+		finalStates: nil,
+		delta:       *NewDeltaTransitions(make(map[Transition]int)),
+	}
+}
+
+func BuildDFAFromDict(dict []string) {
+	// var checked []int = nil
+	dfa := EmptyAutomaton()
+	for _, word := range dict {
+		remaining, lastState := dfa.delta.commonPrefix(word)
+		dfa.AddWord(lastState, remaining)
+	}
+}
 
 func (d *DFA) AddWord(state int, word string) {
 	d.addNewStates(len(word))
@@ -104,8 +135,13 @@ func (d *DFA) Print() {
 }
 
 func (d *DFA) PrintFunction() {
-	for k, v := range d.delta.data {
-		fmt.Printf("(%d, %c, %v)\n", k.state, k.letter, v)
+	fmt.Printf("(p, a) -> q\n")
+	for transition, goalState := range d.delta.transitionToState {
+		fmt.Printf("(%d, %c) -> %d)\n", transition.state, transition.letter, goalState)
+	}
+	fmt.Printf("\np -> (a, q)\n")
+	for initialState, transition := range d.delta.stateToTransition {
+		fmt.Printf("%d -> %v\n", initialState, transition)
 	}
 }
 
