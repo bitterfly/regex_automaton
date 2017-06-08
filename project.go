@@ -1,43 +1,27 @@
 package main
 
 import (
-	"fmt"
-
-	"github.com/bitterfly/project/ndfa"
+	"github.com/bitterfly/pka/dfa"
 )
 
 func main() {
-	alphabet := []string{"a", "b", "c"}
+	alphabet := "abc"
 	states := 3
-	startStates := []int{1, 2}
 	finishStates := []int{3}
 
-	transition := map[ndfa.StateLetter][]int{
-		*ndfa.NewStateLetter(1, "a"): []int{1, 2},
-		*ndfa.NewStateLetter(1, "b"): []int{1, 2, 3},
-		*ndfa.NewStateLetter(2, "c"): []int{3},
+	delta := map[dfa.Transition]int{
+		*dfa.NewTransition(1, 'a'): 2,
+		*dfa.NewTransition(1, 'b'): 1,
+		*dfa.NewTransition(2, 'c'): 3,
 	}
 
-	first := ndfa.NewNdfa(alphabet, states, startStates, finishStates, transition)
-
-	alphabet = []string{"a", "b", "c"}
-	states = 5
-	startStates = []int{2, 4}
-	finishStates = []int{5}
-
-	transition = map[ndfa.StateLetter][]int{
-		*ndfa.NewStateLetter(4, "a"): []int{1, 2, 3},
-		*ndfa.NewStateLetter(3, "b"): []int{1, 2, 3, 4},
-		*ndfa.NewStateLetter(5, "c"): []int{3},
-	}
-
-	second := ndfa.NewNdfa(alphabet, states, startStates, finishStates, transition)
-
-	fmt.Println("First: ")
+	first := dfa.NewDFA(alphabet, states, finishStates, delta)
 	first.PrintFunction()
-	fmt.Println("Second: ")
-	second.PrintFunction()
-	fmt.Println("Union ")
+	// first.Traverse("bba")
+	// first.Traverse("bbac")
+	// first.Traverse("bbaca")
+	first.FindCommonPrefix("baba")
+	first.FindCommonPrefix("pliok")
+	first.FindCommonPrefix("aca")
 
-	ndfa.Union(first, second)
 }
