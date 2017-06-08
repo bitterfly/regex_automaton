@@ -13,6 +13,10 @@ func NewTransition(state int, letter rune) *Transition {
 	return &Transition{letter: letter, state: state}
 }
 
+func (t *Transition) String() string {
+	return fmt.Sprintf("(%c, %d)", t.letter, t.state)
+}
+
 type DeltaTransitions struct {
 	transitionToState map[Transition]int
 	stateToTransition map[int][]Transition
