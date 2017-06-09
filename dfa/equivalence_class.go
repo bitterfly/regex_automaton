@@ -123,14 +123,14 @@ func NewEquivalenceTree(data EquivalenceNode) *EquivalenceTree {
 	}
 }
 
-func (t *EquivalenceTree) Find(needle EquivalenceNode) bool {
+func (t *EquivalenceTree) Find(needle EquivalenceNode) (int, bool) {
 	if t == nil {
-		return false
+		return -1, false
 	}
 
 	compare_result := t.data.equivalenceClass.Compare(needle.equivalenceClass)
 	if compare_result == 0 {
-		return true
+		return t.data.state, true
 	}
 
 	if compare_result == 1 {
