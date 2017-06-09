@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/bitterfly/pka/dfa"
 )
@@ -33,8 +34,10 @@ func main() {
 	// test.Check()
 
 	dict := []string{"babite", "babo", "babu", "kaka", "kapaci"}
+	old := time.Now()
 	test := dfa.BuildDFAFromDict(dict)
+	now := time.Now()
 	test.Print()
 
-	fmt.Printf("Correct language: %v", test.CheckLanguage(dict))
+	fmt.Printf("Correct language: %v\n time: %d", test.CheckLanguage(dict), new-old)
 }
