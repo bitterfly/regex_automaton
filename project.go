@@ -21,10 +21,14 @@ func main() {
 	// first.FindCommonPrefix("pliok")
 	// first.FindCommonPrefix("aca")
 
-	test := dfa.EmptyAutomaton()
-	test.Print()
-	test.AddWord(1, "bla")
-	test.AddWord(2, "gs")
-	test.Print()
+	// test := dfa.EmptyAutomaton()
+	// test.Print()
+	// test.AddWord(1, "bla")
+	// test.AddWord(2, "gs")
+	// test.Print()
+	// test.Check()
 
+	dict := []string{"babite", "babo", "babu"}
+	test := dfa.BuildDFAFromDict(dict)
+	test.Print()
 }
