@@ -1,6 +1,10 @@
 package main
 
-import "github.com/bitterfly/pka/dfa"
+import (
+	"fmt"
+
+	"github.com/bitterfly/pka/dfa"
+)
 
 func main() {
 	// states := 3
@@ -28,7 +32,9 @@ func main() {
 	// test.Print()
 	// test.Check()
 
-	dict := []string{"babite", "babo", "babu"}
+	dict := []string{"babite", "babo", "babu", "kaka", "kapaci"}
 	test := dfa.BuildDFAFromDict(dict)
 	test.Print()
+
+	fmt.Printf("Correct language: %v", test.CheckLanguage(dict))
 }
