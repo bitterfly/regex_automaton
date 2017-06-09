@@ -35,6 +35,18 @@ func (c *Children) addChild(child Transition) {
 	c.lastChild = child
 }
 
+type EquivalenceClass struct {
+	isFinal  bool
+	children Children
+}
+
+func NewEquivalenceClass(isFinal bool, children Children) *EquivalenceClass {
+	return &EquivalenceClass{
+		isFinal:  isFinal,
+		children: children,
+	}
+}
+
 type DeltaTransitions struct {
 	transitionToState  map[Transition]int
 	stateToTransitions map[int]*Children
@@ -70,6 +82,10 @@ func (dt *DeltaTransitions) hasChildren(state int) bool {
 	}
 
 	return len(children.children) != 0
+}
+
+func (dt *DeltaTransitions) getChildren(state int) Children {
+	return *dt.stateToTransitions[state]
 }
 
 func (dt *DeltaTransitions) addTransition(initialState int, letter rune, goalState int) {

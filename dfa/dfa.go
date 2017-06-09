@@ -32,7 +32,7 @@ func EmptyAutomaton() *DFA {
 }
 
 func BuildDFAFromDict(dict []string) *DFA {
-	checked := make(map[int]struct{})
+	checked := make(map[EquivalenceClass]int)
 	dfa := EmptyAutomaton()
 
 	for _, word := range dict {
@@ -54,7 +54,7 @@ func BuildDFAFromDict(dict []string) *DFA {
 	return dfa
 }
 
-func (d *DFA) reduce(state int, checked *map[int]struct{}) {
+func (d *DFA) reduce(state int, checked *map[EquivalenceClass]int) {
 	//fmt.Printf("Enter reduce with %d\n", state)
 	child := d.delta.stateToTransitions[state].lastChild
 	if d.delta.hasChildren(child.state) {
@@ -62,20 +62,20 @@ func (d *DFA) reduce(state int, checked *map[int]struct{}) {
 	}
 
 	found_equivalent := false
+	childEquivalenceClass := *NewEquivalenceClass(d.isFinal(child.state), d.delta.getChildren(child.state))
 
 	//fmt.Printf("Checked %v\n", checked)
-	for checked_state, _ := range *checked {
-		if d.checkEquivalentStates(checked_state, child.state) {
-			//fmt.Printf("found euqivalent: %d %d\n", checked_state, child.state)
-			found_equivalent = true
-			d.delta.removeTransition(state, child.letter, child.state, *NewTransition(checked_state, child.letter))
-			d.removeState(child.state)
-			d.delta.addTransition(state, child.letter, checked_state)
-		}
-	}
-	if !found_equivalent {
+
+	checked_state, ok := checked[childEquivalenceClass]
+
+	if ok {
+		found_equivalent = true
+		d.delta.removeTransition(state, child.letter, child.state, *NewTransition(checked_state, child.letter))
+		d.removeState(child.state)
+		d.delta.addTransition(state, child.letter, checked_state)
+	} else {
 		//fmt.Printf("Adding child: %d\n", child.state)
-		(*checked)[child.state] = struct{}{}
+		(*checked)[childEquivalenceClass] = child.state
 	}
 }
 
