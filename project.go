@@ -34,10 +34,10 @@ func main() {
 	// test.Check()
 
 	dict := []string{"babite", "babo", "babu", "kaka", "kapaci"}
-	old := time.Now()
+	start := time.Now()
 	test := dfa.BuildDFAFromDict(dict)
-	now := time.Now()
+	elapsed := time.Since(start)
 	test.Print()
 
-	fmt.Printf("Correct language: %v\n time: %d", test.CheckLanguage(dict), new-old)
+	fmt.Printf("Correct language: %v\n time: %s\n", test.CheckLanguage(dict), elapsed)
 }
