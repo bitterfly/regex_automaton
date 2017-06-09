@@ -73,6 +73,10 @@ func (dt *DeltaTransitions) hasChildren(state int) bool {
 }
 
 func (dt *DeltaTransitions) getChildren(state int) Children {
+	if dt.stateToTransitions[state] == nil {
+		return Children{}
+	}
+
 	return *dt.stateToTransitions[state]
 }
 

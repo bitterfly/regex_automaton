@@ -45,6 +45,10 @@ func (e *EquivalenceClass) Compare(other EquivalenceClass) int {
 		}
 		return -1
 	} else {
+		if e.children.children == nil && other.children.children == nil {
+			return 0
+		}
+
 		if len(e.children.children) == len(other.children.children) {
 			first_labels := make([]rune, len(e.children.children))
 			first_states := make([]int, len(e.children.children))
