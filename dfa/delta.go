@@ -35,18 +35,6 @@ func (c *Children) addChild(child Transition) {
 	c.lastChild = child
 }
 
-type EquivalenceClass struct {
-	isFinal  bool
-	children Children
-}
-
-func NewEquivalenceClass(isFinal bool, children Children) *EquivalenceClass {
-	return &EquivalenceClass{
-		isFinal:  isFinal,
-		children: children,
-	}
-}
-
 type DeltaTransitions struct {
 	transitionToState  map[Transition]int
 	stateToTransitions map[int]*Children
