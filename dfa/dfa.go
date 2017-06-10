@@ -143,6 +143,19 @@ func (d *DFA) FindCommonPrefix(word string) {
 	fmt.Printf("Word: %s\nRemaining: %s, last_state: %d\n\n", word, remaining, state)
 }
 
+func (d *DFA) CheckLanguage(dict []string) bool {
+	for _, word := range dict {
+		ok, state := d.delta.traverse(word)
+		if !ok {
+			return false
+		}
+		if !d.isFinal(state) {
+			return false
+		}
+	}
+	return true
+}
+
 func (d *DFA) Check() {
 	fmt.Printf("Equiv 1:1 %v\n", d.checkEquivalentStates(1, 1))
 	fmt.Printf("Equiv 1:2 %v\n", d.checkEquivalentStates(1, 2))

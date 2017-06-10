@@ -1,6 +1,14 @@
 package main
 
-import "github.com/bitterfly/pka/dfa"
+import (
+	"bufio"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/bitterfly/pka/dfa"
+)
 
 func main() {
 	// states := 3
@@ -28,7 +36,28 @@ func main() {
 	// test.Print()
 	// test.Check()
 
-	dict := []string{"babite", "babo", "babu"}
+	file, err := os.Open("/tmp/dict.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	var dict []string
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		dict = append(dict, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	//dict := []string{"babite", "babo", "babu", "kaka", "kapaci"}
+	start := time.Now()
 	test := dfa.BuildDFAFromDict(dict)
+	elapsed := time.Since(start)
 	test.Print()
+
+	fmt.Printf("Correct language: %v\n time: %s\n", test.CheckLanguage(dict), elapsed)
 }
