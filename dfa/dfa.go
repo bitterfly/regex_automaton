@@ -2,7 +2,6 @@ package dfa
 
 import (
 	"fmt"
-	"reflect"
 	"sort"
 )
 
@@ -42,39 +41,21 @@ func BuildDFAFromDict(dict []string) *DFA {
 	for _, word := range dict {
 		remaining, lastState := dfa.delta.commonPrefix(word)
 
-		before := dfa.delta.stateToTransitions[lastState].sortedChildren()
-
-		lastStateEquivalenceClass := *NewEquivalenceClass(dfa.isFinal(lastState), dfa.delta.getChildren(lastState))
-		lastStateEquivalenceNode := *NewEquivalenceNode(lastState, lastStateEquivalenceClass)
-
-		checked_state, _ := checked.Find(lastStateEquivalenceNode)
-
 		if dfa.delta.hasChildren(lastState) {
 			dfa.reduce(lastState, checked)
 		}
 
 		if remaining == "" {
-			fmt.Printf("Vlizame")
 			dfa.makeFinal(lastState)
 		} else {
 			dfa.AddWord(lastState, remaining)
 		}
-
-		after := dfa.delta.stateToTransitions[lastState].sortedChildren()
-
-		if !reflect.DeepEqual(before, after) {
-			if checked_state == lastState {
-				panic(fmt.Sprintf("different: %v, %v", before, after))
-			}
-		}
-		dfa.Print()
 	}
 	dfa.reduce(1, checked)
 	return dfa
 }
 
 func (d *DFA) reduce(state int, checked *EquivalenceTree) {
-	////fmt.Printf("Enter reduce with %d\n", state)
 	child := d.delta.stateToTransitions[state].lastChild
 	if d.delta.hasChildren(child.state) {
 		d.reduce(child.state, checked)
@@ -88,27 +69,17 @@ func (d *DFA) reduce(state int, checked *EquivalenceTree) {
 		return
 	}
 	if ok {
-		fmt.Printf("Equal in code:\n")
-
-		fmt.Printf("%d: %v\n%d: %v\n", checked_state, d.delta.stateToTransitions[checked_state].sortedChildren(), child.state, d.delta.stateToTransitions[child.state].sortedChildren())
-		if d.delta.stateToTransitions[checked_state] != nil {
-			fmt.Printf(" : %d: %c\n : %d: %c\n", checked_state, d.delta.stateToTransitions[checked_state].lastChild.letter, child.state, d.delta.stateToTransitions[child.state].lastChild.letter)
-		}
-		fmt.Printf("Deleting %d\nAdding transition (%d, %c, %d)\n", child.state, state, child.letter, checked_state)
-
 		d.delta.removeTransition(state, child.letter, child.state, *NewTransition(checked_state, child.letter))
 
 		d.removeState(child.state)
 		d.delta.addTransition(state, child.letter, checked_state)
 	} else {
-		////fmt.Printf("Adding child: %d\n", child.state)
 		Insert(&checked, childEquivalenceNode)
 	}
 }
 
 func (d *DFA) AddWord(state int, word string) {
 	d.addNewStates(len(word))
-	//fmt.Printf("Mking final: %d\n", d.maxState)
 	d.finalStates[d.maxState] = struct{}{}
 	d.delta.addWord(state, d.maxState-len(word)+1, word)
 }
@@ -128,15 +99,11 @@ func (d *DFA) addNewStates(number int) {
 }
 
 func (d *DFA) makeFinal(state int) {
-	fmt.Printf("Making final: %d\n\n", state)
 	d.finalStates[state] = struct{}{}
 }
 
 func (d *DFA) removeState(state int) {
 	if d.isFinal(state) {
-		fmt.Printf("Remove final: %d\n\n", state)
-
-		//fmt.Printf("Delete from final state: %d\n", state)
 		delete(d.finalStates, state)
 	}
 }
@@ -155,7 +122,7 @@ func (d *DFA) sortedFinalStates() []int {
 func (d *DFA) Print() {
 	fmt.Printf("====DFA====\n")
 	fmt.Printf("Max: %d, Final: %v\n", d.maxState, d.sortedFinalStates())
-	// d.PrintFunction()
+	d.PrintFunction()
 	fmt.Printf("\n====AFD====\n")
 }
 
