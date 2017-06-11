@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	file, err := os.Open("/tmp/small_dict.txt")
+	file, err := os.Open("/tmp/dict.txt")
 	if err != nil {
 		log.Fatal(err)
 	}

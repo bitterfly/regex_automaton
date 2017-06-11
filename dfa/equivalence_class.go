@@ -1,6 +1,9 @@
 package dfa
 
-import "sort"
+import (
+	"reflect"
+	"sort"
+)
 
 type EquivalenceClass struct {
 	isFinal  bool
@@ -38,67 +41,51 @@ func compareRuneSlices(first []rune, second []rune) int {
 	return 0
 }
 
-func Compare(state int, first EquivalenceClass, other EquivalenceClass) int {
+func Compare(state int, first EquivalenceClass, second EquivalenceClass) int {
 	//the final one is bigger
-	if first.isFinal != other.isFinal {
+	if first.isFinal != second.isFinal {
 		if first.isFinal {
 			return 1
 		}
 		return -1
 	}
-	if first.children.children == nil && other.children.children == nil {
+	if first.children.children == nil && second.children.children == nil {
 		return 0
 	}
 
-	if len(first.children.children) != len(other.children.children) {
-		if len(first.children.children) > len(other.children.children) {
+	if len(first.children.children) != len(second.children.children) {
+		if len(first.children.children) > len(second.children.children) {
 			return 1
 		}
 		return -1
 	}
 
-	////fmt.Printf("Real states:\nfirst: %v\nsecond: %v\n", first.children.children, other.children.children)
-
 	// both are final/non final and have the same number of children
-	first_labels := make([]rune, len(first.children.children))
-	first_states := make([]int, len(first.children.children))
+	first_transitions := make([]Transition, len(first.children.children))
 
 	i := 0
 	for k, _ := range first.children.children {
-		first_labels[i] = k.letter
-		first_states[i] = k.state
+		first_transitions[i] = k
 		i += 1
 	}
 
-	sort.Slice(first_labels, func(i, j int) bool { return first_labels[i] < first_labels[j] })
-	sort.Slice(first_states, func(i, j int) bool { return first_labels[i] < first_labels[j] })
+	sort.Slice(first_transitions, func(i, j int) bool {
+		return first_transitions[i].letter < first_transitions[j].letter || first_transitions[i].state < first_transitions[j].state
+	})
 
-	second_labels := make([]rune, len(other.children.children))
-	second_states := make([]int, len(other.children.children))
+	second_transitions := make([]Transition, len(second.children.children))
 
 	i = 0
-	for k, _ := range other.children.children {
-		second_labels[i] = k.letter
-		second_states[i] = k.state
+	for k, _ := range second.children.children {
+		second_transitions[i] = k
 		i += 1
 	}
 
-	sort.Slice(second_labels, func(i, j int) bool { return second_labels[i] < second_labels[j] })
-	sort.Slice(second_states, func(i, j int) bool { return second_labels[i] < second_labels[j] })
+	sort.Slice(second_transitions, func(i, j int) bool {
+		return second_transitions[i].letter < second_transitions[j].letter || second_transitions[i].state < second_transitions[j].state
+	})
 
-	// -1 0 1
-	labels_difference := compareRuneSlices(first_labels, second_labels)
-	states_difference := compare(first_states, second_states)
-
-	if labels_difference != 0 {
-		return labels_difference
-	}
-
-	if states_difference != 0 {
-		return states_difference
-	}
-
-	return 0
+	return compareTransitionSlices(first_transitions, second_transitions)
 }
 
 type EquivalenceNode struct {
@@ -137,9 +124,9 @@ func (t *EquivalenceTree) Find(needle EquivalenceNode) (int, bool) {
 	compare_result := Compare(needle.state, t.data.equivalenceClass, needle.equivalenceClass)
 	if compare_result == 0 {
 
-		// if !reflect.DeepEqual(needle.equivalenceClass.children.sortedChildren(), t.data.equivalenceClass.children.sortedChildren()) {
-		// 	panic("compare said unequal things are equal")
-		// }
+		if !reflect.DeepEqual(needle.equivalenceClass.children.sortedChildren(), t.data.equivalenceClass.children.sortedChildren()) {
+			panic("compare said unequal things are equal")
+		}
 		return t.data.state, true
 	}
 
