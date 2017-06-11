@@ -36,7 +36,7 @@ func main() {
 	// test.Print()
 	// test.Check()
 
-	file, err := os.Open("/tmp/dict.txt")
+	file, err := os.Open("/tmp/small_dict.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,7 +53,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	//dict := []string{"babite", "babo", "babu", "kaka", "kapaci"}
 	start := time.Now()
 	test := dfa.BuildDFAFromDict(dict)
 	elapsed := time.Since(start)

@@ -1,6 +1,10 @@
 package dfa
 
-import "fmt"
+import (
+	"fmt"
+	"reflect"
+	"sort"
+)
 
 //states are consecutive numbers
 //start state is always 1
@@ -12,7 +16,7 @@ type DFA struct {
 
 func NewDFA(maxState int, _finalStates []int, delta map[Transition]int) *DFA {
 	finalStates := make(map[int]struct{})
-	for state := range _finalStates {
+	for _, state := range _finalStates {
 		finalStates[state] = struct{}{}
 	}
 
@@ -32,30 +36,45 @@ func EmptyAutomaton() *DFA {
 }
 
 func BuildDFAFromDict(dict []string) *DFA {
-	var checked EquivalenceTree
+	checked := &EquivalenceTree{}
 	dfa := EmptyAutomaton()
 
 	for _, word := range dict {
-		//fmt.Printf("word: %s\n", word)
 		remaining, lastState := dfa.delta.commonPrefix(word)
-		//fmt.Printf("remaining: %s\n", remaining)
-		//fmt.Printf("last_state: %d\n", lastState)
+
+		before := dfa.delta.stateToTransitions[lastState].sortedChildren()
+
+		lastStateEquivalenceClass := *NewEquivalenceClass(dfa.isFinal(lastState), dfa.delta.getChildren(lastState))
+		lastStateEquivalenceNode := *NewEquivalenceNode(lastState, lastStateEquivalenceClass)
+
+		checked_state, _ := checked.Find(lastStateEquivalenceNode)
 
 		if dfa.delta.hasChildren(lastState) {
-			dfa.reduce(lastState, &checked)
+			dfa.reduce(lastState, checked)
 		}
-		dfa.AddWord(lastState, remaining)
-		//fmt.Printf("DFA: \n")
-		//dfa.Print()
-		//fmt.Printf("==============\n\n")
 
+		if remaining == "" {
+			fmt.Printf("Vlizame")
+			dfa.makeFinal(lastState)
+		} else {
+			dfa.AddWord(lastState, remaining)
+		}
+
+		after := dfa.delta.stateToTransitions[lastState].sortedChildren()
+
+		if !reflect.DeepEqual(before, after) {
+			if checked_state == lastState {
+				panic(fmt.Sprintf("different: %v, %v", before, after))
+			}
+		}
+		dfa.Print()
 	}
-	dfa.reduce(1, &checked)
+	dfa.reduce(1, checked)
 	return dfa
 }
 
 func (d *DFA) reduce(state int, checked *EquivalenceTree) {
-	//fmt.Printf("Enter reduce with %d\n", state)
+	////fmt.Printf("Enter reduce with %d\n", state)
 	child := d.delta.stateToTransitions[state].lastChild
 	if d.delta.hasChildren(child.state) {
 		d.reduce(child.state, checked)
@@ -65,18 +84,31 @@ func (d *DFA) reduce(state int, checked *EquivalenceTree) {
 	childEquivalenceNode := *NewEquivalenceNode(child.state, childEquivalenceClass)
 
 	checked_state, ok := checked.Find(childEquivalenceNode)
+	if checked_state == child.state {
+		return
+	}
 	if ok {
+		fmt.Printf("Equal in code:\n")
+
+		fmt.Printf("%d: %v\n%d: %v\n", checked_state, d.delta.stateToTransitions[checked_state].sortedChildren(), child.state, d.delta.stateToTransitions[child.state].sortedChildren())
+		if d.delta.stateToTransitions[checked_state] != nil {
+			fmt.Printf(" : %d: %c\n : %d: %c\n", checked_state, d.delta.stateToTransitions[checked_state].lastChild.letter, child.state, d.delta.stateToTransitions[child.state].lastChild.letter)
+		}
+		fmt.Printf("Deleting %d\nAdding transition (%d, %c, %d)\n", child.state, state, child.letter, checked_state)
+
 		d.delta.removeTransition(state, child.letter, child.state, *NewTransition(checked_state, child.letter))
+
 		d.removeState(child.state)
 		d.delta.addTransition(state, child.letter, checked_state)
 	} else {
-		//fmt.Printf("Adding child: %d\n", child.state)
+		////fmt.Printf("Adding child: %d\n", child.state)
 		Insert(&checked, childEquivalenceNode)
 	}
 }
 
 func (d *DFA) AddWord(state int, word string) {
 	d.addNewStates(len(word))
+	//fmt.Printf("Mking final: %d\n", d.maxState)
 	d.finalStates[d.maxState] = struct{}{}
 	d.delta.addWord(state, d.maxState-len(word)+1, word)
 }
@@ -95,18 +127,35 @@ func (d *DFA) addNewStates(number int) {
 	d.maxState += number
 }
 
+func (d *DFA) makeFinal(state int) {
+	fmt.Printf("Making final: %d\n\n", state)
+	d.finalStates[state] = struct{}{}
+}
+
 func (d *DFA) removeState(state int) {
 	if d.isFinal(state) {
+		fmt.Printf("Remove final: %d\n\n", state)
+
+		//fmt.Printf("Delete from final state: %d\n", state)
 		delete(d.finalStates, state)
 	}
 }
 
 //===========================Human Friendly======================================
 
+func (d *DFA) sortedFinalStates() []int {
+	var states []int
+	for k, _ := range d.finalStates {
+		states = append(states, k)
+	}
+	sort.Ints(states)
+	return states
+}
+
 func (d *DFA) Print() {
 	fmt.Printf("====DFA====\n")
-	fmt.Printf("Max: %d, Final: %v\n", d.maxState, d.finalStates)
-	d.PrintFunction()
+	fmt.Printf("Max: %d, Final: %v\n", d.maxState, d.sortedFinalStates())
+	// d.PrintFunction()
 	fmt.Printf("\n====AFD====\n")
 }
 
@@ -143,9 +192,11 @@ func (d *DFA) CheckLanguage(dict []string) bool {
 	for _, word := range dict {
 		ok, state := d.delta.traverse(word)
 		if !ok {
+			fmt.Printf("No transition: %s\n", word)
 			return false
 		}
 		if !d.isFinal(state) {
+			fmt.Printf("First failing word: %s\n", word)
 			return false
 		}
 	}

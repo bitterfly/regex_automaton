@@ -3,6 +3,7 @@ package dfa
 import (
 	"fmt"
 	"reflect"
+	"sort"
 )
 
 type Transition struct {
@@ -23,6 +24,18 @@ type Children struct {
 	lastChild Transition
 }
 
+func (c *Children) sortedChildren() []string {
+	var pairs []string
+	if c == nil {
+		return nil
+	}
+	for k, _ := range c.children {
+		pairs = append(pairs, fmt.Sprintf("(%c, %d)", k.letter, k.state))
+	}
+	sort.Strings(pairs)
+	return pairs
+}
+
 func NewChildren(child Transition) *Children {
 	return &Children{
 		children:  map[Transition]struct{}{child: struct{}{}},
@@ -32,7 +45,10 @@ func NewChildren(child Transition) *Children {
 
 func (c *Children) addChild(child Transition) {
 	c.children[child] = struct{}{}
-	c.lastChild = child
+	if c.lastChild.letter < child.letter {
+		c.lastChild = child
+	}
+
 }
 
 type DeltaTransitions struct {
@@ -96,6 +112,9 @@ func (dt *DeltaTransitions) removeTransition(initialState int, letter rune, goal
 	delete(dt.transitionToState, *NewTransition(initialState, letter))
 	outgoing_transitions := dt.stateToTransitions[initialState]
 	delete(outgoing_transitions.children, *NewTransition(goalState, letter))
+	if outgoing_transitions.lastChild.letter > newLastChild.letter {
+		panic("children are reversed")
+	}
 	outgoing_transitions.lastChild = newLastChild
 }
 
