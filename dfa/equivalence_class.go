@@ -1,16 +1,27 @@
 package dfa
 
-import "reflect"
+import (
+	"reflect"
+	"sort"
+)
 
 type EquivalenceClass struct {
 	isFinal  bool
 	children []Transition
 }
 
-func NewEquivalenceClass(isFinal bool, children []Transition) *EquivalenceClass {
+func NewEquivalenceClass(isFinal bool, children Children) *EquivalenceClass {
+	c := make([]Transition, len(children.children))
+	i := 0
+	for k, _ := range children.children {
+		c[i] = k
+		i += 1
+	}
+
+	sort.Slice(c, func(i, j int) bool { return c[i].letter < c[j].letter || c[i].state < c[j].state })
 	return &EquivalenceClass{
 		isFinal:  isFinal,
-		children: children,
+		children: c,
 	}
 }
 
@@ -33,7 +44,7 @@ func CompareEquivalenceClasses(first, second *EquivalenceClass) int {
 		return -1
 	}
 
-	return compareTransitionSlices(first_transitions, second_transitions)
+	return compareTransitionSlices(first.children, second.children)
 }
 
 type EquivalenceNode struct {
@@ -69,10 +80,10 @@ func (t *EquivalenceTree) Find(needle EquivalenceNode) (int, bool) {
 		return -1, false
 	}
 
-	compare_result := CompareEquivalenceClasses(t.data.equivalenceClass, needle.equivalenceClass)
+	compare_result := CompareEquivalenceClasses(&t.data.equivalenceClass, &needle.equivalenceClass)
 	if compare_result == 0 {
 
-		if !reflect.DeepEqual(needle.equivalenceClass.children.sortedChildren(), t.data.equivalenceClass.children.sortedChildren()) {
+		if !reflect.DeepEqual(needle.equivalenceClass.children, t.data.equivalenceClass.children) {
 			panic("compare said unequal things are equal")
 		}
 		return t.data.state, true
@@ -89,7 +100,7 @@ func Insert(node **EquivalenceTree, needle EquivalenceNode) {
 	if (*node) == nil {
 		(*node) = NewEquivalenceTree(needle)
 	} else {
-		compare_result := CompareEquivalenceClasses(needle.state, (*node).data.equivalenceClass, needle.equivalenceClass)
+		compare_result := CompareEquivalenceClasses(&(*node).data.equivalenceClass, &needle.equivalenceClass)
 		if compare_result == 1 {
 			Insert(&(*node).left, needle)
 			(*node).left.parent = (*node)
@@ -122,7 +133,7 @@ func ReplaceNode(node **EquivalenceTree, newNode *EquivalenceTree) {
 }
 
 func Delete(node **EquivalenceTree, needle EquivalenceNode) {
-	compare_result := CompareEquivalenceClasses(needle.state, (*node).data.equivalenceClass, needle.equivalenceClass)
+	compare_result := CompareEquivalenceClasses(&(*node).data.equivalenceClass, &needle.equivalenceClass)
 	if compare_result == -1 {
 		Delete(&(*node).right, needle)
 	} else if compare_result == 1 {
