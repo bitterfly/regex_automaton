@@ -1,89 +1,37 @@
 package dfa
 
-import (
-	"reflect"
-	"sort"
-)
+import "reflect"
 
 type EquivalenceClass struct {
 	isFinal  bool
-	children Children
+	children []Transition
 }
 
-func NewEquivalenceClass(isFinal bool, children Children) *EquivalenceClass {
+func NewEquivalenceClass(isFinal bool, children []Transition) *EquivalenceClass {
 	return &EquivalenceClass{
 		isFinal:  isFinal,
 		children: children,
 	}
 }
 
-func compare(first []int, second []int) int {
-	for i, value := range first {
-		if value > second[i] {
-			return 1
-		}
-		if value < second[i] {
-			return -1
-		}
-	}
-	return 0
-}
-
-func compareRuneSlices(first []rune, second []rune) int {
-	for i, value := range first {
-		if value > second[i] {
-			return 1
-		}
-		if value < second[i] {
-			return -1
-		}
-	}
-	return 0
-}
-
-func Compare(state int, first EquivalenceClass, second EquivalenceClass) int {
+func CompareEquivalenceClasses(first, second *EquivalenceClass) int {
 	//the final one is bigger
-	if first.isFinal != second.isFinal {
-		if first.isFinal {
+	if (*first).isFinal != (*second).isFinal {
+		if (*first).isFinal {
 			return 1
 		}
 		return -1
 	}
-	if first.children.children == nil && second.children.children == nil {
+	if (*first).children == nil && (*second).children == nil {
 		return 0
 	}
 
-	if len(first.children.children) != len(second.children.children) {
-		if len(first.children.children) > len(second.children.children) {
+	if len((*first).children) != len((*second).children) {
+		if len((*first).children) > len((*second).children) {
 			return 1
 		}
 		return -1
 	}
-
-	// both are final/non final and have the same number of children
-	first_transitions := make([]Transition, len(first.children.children))
-
-	i := 0
-	for k, _ := range first.children.children {
-		first_transitions[i] = k
-		i += 1
-	}
-
-	sort.Slice(first_transitions, func(i, j int) bool {
-		return first_transitions[i].letter < first_transitions[j].letter || first_transitions[i].state < first_transitions[j].state
-	})
-
-	second_transitions := make([]Transition, len(second.children.children))
-
-	i = 0
-	for k, _ := range second.children.children {
-		second_transitions[i] = k
-		i += 1
-	}
-
-	sort.Slice(second_transitions, func(i, j int) bool {
-		return second_transitions[i].letter < second_transitions[j].letter || second_transitions[i].state < second_transitions[j].state
-	})
 
 	return compareTransitionSlices(first_transitions, second_transitions)
 }
@@ -121,7 +69,7 @@ func (t *EquivalenceTree) Find(needle EquivalenceNode) (int, bool) {
 		return -1, false
 	}
 
-	compare_result := Compare(needle.state, t.data.equivalenceClass, needle.equivalenceClass)
+	compare_result := CompareEquivalenceClasses(t.data.equivalenceClass, needle.equivalenceClass)
 	if compare_result == 0 {
 
 		if !reflect.DeepEqual(needle.equivalenceClass.children.sortedChildren(), t.data.equivalenceClass.children.sortedChildren()) {
@@ -141,7 +89,7 @@ func Insert(node **EquivalenceTree, needle EquivalenceNode) {
 	if (*node) == nil {
 		(*node) = NewEquivalenceTree(needle)
 	} else {
-		compare_result := Compare(needle.state, (*node).data.equivalenceClass, needle.equivalenceClass)
+		compare_result := CompareEquivalenceClasses(needle.state, (*node).data.equivalenceClass, needle.equivalenceClass)
 		if compare_result == 1 {
 			Insert(&(*node).left, needle)
 			(*node).left.parent = (*node)
@@ -174,7 +122,7 @@ func ReplaceNode(node **EquivalenceTree, newNode *EquivalenceTree) {
 }
 
 func Delete(node **EquivalenceTree, needle EquivalenceNode) {
-	compare_result := Compare(needle.state, (*node).data.equivalenceClass, needle.equivalenceClass)
+	compare_result := CompareEquivalenceClasses(needle.state, (*node).data.equivalenceClass, needle.equivalenceClass)
 	if compare_result == -1 {
 		Delete(&(*node).right, needle)
 	} else if compare_result == 1 {
