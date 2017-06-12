@@ -1,27 +1,14 @@
 package dfa
 
-import (
-	"reflect"
-	"sort"
-)
-
 type EquivalenceClass struct {
 	isFinal  bool
 	children []Transition
 }
 
-func NewEquivalenceClass(isFinal bool, children Children) *EquivalenceClass {
-	c := make([]Transition, len(children.children))
-	i := 0
-	for k, _ := range children.children {
-		c[i] = k
-		i += 1
-	}
-
-	sort.Slice(c, func(i, j int) bool { return c[i].letter < c[j].letter || c[i].state < c[j].state })
+func NewEquivalenceClass(isFinal bool, children []Transition) *EquivalenceClass {
 	return &EquivalenceClass{
 		isFinal:  isFinal,
-		children: c,
+		children: children,
 	}
 }
 
@@ -83,9 +70,9 @@ func (t *EquivalenceTree) Find(needle EquivalenceNode) (int, bool) {
 	compare_result := CompareEquivalenceClasses(&t.data.equivalenceClass, &needle.equivalenceClass)
 	if compare_result == 0 {
 
-		if !reflect.DeepEqual(needle.equivalenceClass.children, t.data.equivalenceClass.children) {
-			panic("compare said unequal things are equal")
-		}
+		// if !reflect.DeepEqual(needle.equivalenceClass.children, t.data.equivalenceClass.children) {
+		// 	panic("compare said unequal things are equal")
+		// }
 		return t.data.state, true
 	}
 

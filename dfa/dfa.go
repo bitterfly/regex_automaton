@@ -56,7 +56,9 @@ func BuildDFAFromDict(dict []string) *DFA {
 }
 
 func (d *DFA) reduce(state int, checked *EquivalenceTree) {
-	child := d.delta.stateToTransitions[state].lastChild
+
+	children := d.delta.stateToTransitions[state]
+	child := children[len(children)-1]
 	if d.delta.hasChildren(child.state) {
 		d.reduce(child.state, checked)
 	}
@@ -133,11 +135,7 @@ func (d *DFA) PrintFunction() {
 	}
 	fmt.Printf("\np -> (a, q)\n\n")
 	for initialState, children := range d.delta.stateToTransitions {
-		fmt.Printf("%d -> ", initialState)
-		for child, _ := range children.children {
-			fmt.Printf("%s ", child.String())
-		}
-		fmt.Printf("\n")
+		fmt.Printf("%d -> %v \n", initialState, children)
 	}
 }
 
