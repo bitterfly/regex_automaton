@@ -109,6 +109,15 @@ func (d *DFA) removeState(state int) {
 }
 
 //===========================Human Friendly======================================
+func (d *DFA) CountStates() int {
+	states := make(map[int]struct{})
+
+	for tr, i := range d.delta.transitionToState {
+		states[tr.state] = struct{}{}
+		states[i] = struct{}{}
+	}
+	return len(states)
+}
 
 func (d *DFA) sortedFinalStates() []int {
 	var states []int
