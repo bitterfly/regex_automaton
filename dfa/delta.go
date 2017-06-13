@@ -15,17 +15,17 @@ func NewTransition(state int, letter rune) *Transition {
 	return &Transition{letter: letter, state: state}
 }
 
-func compareTransition(first *Transition, second *Transition) int {
-	if (*first).letter != (*second).letter {
-		if (*first).letter > (*second).letter {
+func compareTransition(first, second Transition) int {
+	if first.letter != second.letter {
+		if first.letter > second.letter {
 			return 1
 		} else {
 			return -1
 		}
 	}
 
-	if (*first).state != (*second).state {
-		if (*first).state > (*second).state {
+	if first.state != second.state {
+		if first.state > second.state {
 			return 1
 		} else {
 			return -1
@@ -36,7 +36,7 @@ func compareTransition(first *Transition, second *Transition) int {
 
 func compareTransitionSlices(first []Transition, second []Transition) int {
 	for i, _ := range first {
-		compareResult := compareTransition(&first[i], &second[i])
+		compareResult := compareTransition(first[i], second[i])
 		if compareResult != 0 {
 			return compareResult
 		}
@@ -97,7 +97,7 @@ func (dt *DeltaTransitions) removeTransition(initialState int, letter rune, goal
 	delete(dt.transitionToState, *NewTransition(initialState, letter))
 	outgoing_transitions := dt.stateToTransitions[initialState]
 
-	if compareTransition(&outgoing_transitions[len(outgoing_transitions)-1], NewTransition(goalState, letter)) != 0 {
+	if compareTransition(outgoing_transitions[len(outgoing_transitions)-1], *NewTransition(goalState, letter)) != 0 {
 		panic("We aren't removing last transition\n")
 	}
 

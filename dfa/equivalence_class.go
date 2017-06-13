@@ -12,20 +12,27 @@ func NewEquivalenceClass(isFinal bool, children []Transition) *EquivalenceClass 
 	}
 }
 
+func GetTimes() int {
+	return Times
+}
+
+var Times int = 0
+
 func CompareEquivalenceClasses(first, second *EquivalenceClass) int {
+	Times += 1
 	//the final one is bigger
-	if (*first).isFinal != (*second).isFinal {
-		if (*first).isFinal {
+	if first.isFinal != second.isFinal {
+		if first.isFinal {
 			return 1
 		}
 		return -1
 	}
-	if (*first).children == nil && (*second).children == nil {
+	if first.children == nil && second.children == nil {
 		return 0
 	}
 
-	if len((*first).children) != len((*second).children) {
-		if len((*first).children) > len((*second).children) {
+	if len(first.children) != len(second.children) {
+		if len(first.children) > len(second.children) {
 			return 1
 		}
 		return -1
