@@ -50,5 +50,6 @@ func main() {
 	fmt.Printf("Correct language: %v\n time: %s\n", test.CheckLanguage(dict), elapsed)
 	fmt.Printf("Number of states: %d\n", test.CountStates())
 	fmt.Printf("Enters function: %d\n", dfa.GetTimes())
+	fmt.Printf("Enters reduce: %d\n", dfa.GetTimesReduce())
 
 }

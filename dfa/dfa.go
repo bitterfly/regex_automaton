@@ -55,8 +55,14 @@ func BuildDFAFromDict(dict []string) *DFA {
 	return dfa
 }
 
-func (d *DFA) reduce(state int, checked *EquivalenceTree) {
+func GetTimesReduce() int {
+	return TimesReduce
+}
 
+var TimesReduce int = 0
+
+func (d *DFA) reduce(state int, checked *EquivalenceTree) {
+	TimesReduce += 1
 	children := d.delta.stateToTransitions[state]
 	child := children[len(children)-1]
 	if d.delta.hasChildren(child.state) {
