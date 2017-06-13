@@ -48,5 +48,6 @@ func main() {
 	//test.Print()
 
 	fmt.Printf("Correct language: %v\n time: %s\n", test.CheckLanguage(dict), elapsed)
+	fmt.Printf("Number of states: %d\n", test.CountStates())
 
 }
