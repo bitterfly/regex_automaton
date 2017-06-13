@@ -2,39 +2,28 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"log"
 	"os"
+	"runtime/pprof"
 	"time"
 
 	"github.com/bitterfly/pka/dfa"
 )
 
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+
 func main() {
-	// states := 3
-	// finishStates := []int{3}
-
-	// delta := map[dfa.Transition]int{
-	// 	*dfa.NewTransition(1, 'a'): 2,
-	// 	*dfa.NewTransition(1, 'b'): 1,
-	// 	*dfa.NewTransition(2, 'c'): 3,
-	// }
-
-	// first := dfa.NewDFA(states, finishStates, delta)
-	// first.PrintFunction()
-	// // first.Traverse("bba")
-	// // first.Traverse("bbac")
-	// // first.Traverse("bbaca")
-	// first.FindCommonPrefix("baba")
-	// first.FindCommonPrefix("pliok")
-	// first.FindCommonPrefix("aca")
-
-	// test := dfa.EmptyAutomaton()
-	// test.Print()
-	// test.AddWord(1, "bla")
-	// test.AddWord(2, "gs")
-	// test.Print()
-	// test.Check()
+	flag.Parse()
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
 
 	file, err := os.Open("/tmp/dict.txt")
 	if err != nil {
@@ -53,11 +42,20 @@ func main() {
 		log.Fatal(err)
 	}
 
-	//dict := []string{"babite", "babo", "babu", "kaka", "kapaci"}
 	start := time.Now()
-	test := dfa.BuildDFAFromDict(dict)
+	test, eq_c := dfa.BuildDFAFromDict(dict)
 	elapsed := time.Since(start)
-	test.Print()
+	//test.Print()
 
-	fmt.Printf("Correct language: %v\n time: %s\n", test.CheckLanguage(dict), elapsed)
+	i, j := test.CountStates()
+
+	fmt.Printf("Correct language: %v\nTime: %s\n", test.CheckLanguage(dict), elapsed)
+	fmt.Printf("Is minimal? %v\n", (i == eq_c))
+	fmt.Printf("Number of states: %d, %d\n", i, j)
+	fmt.Printf("Number of eq classes: %d\n", eq_c)
+	fmt.Printf("Enters function: %d\n", dfa.GetTimes())
+	fmt.Printf("Enters reduce: %d\n", dfa.GetTimesReduce())
+
+	//	test.Print()
+
 }

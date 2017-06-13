@@ -3,6 +3,7 @@ package dfa
 import (
 	"fmt"
 	"reflect"
+	"sort"
 )
 
 type Transition struct {
@@ -14,43 +15,57 @@ func NewTransition(state int, letter rune) *Transition {
 	return &Transition{letter: letter, state: state}
 }
 
+func compareTransition(first, second Transition) int {
+	if first.letter != second.letter {
+		if first.letter > second.letter {
+			return 1
+		} else {
+			return -1
+		}
+	}
+
+	if first.state != second.state {
+		if first.state > second.state {
+			return 1
+		} else {
+			return -1
+		}
+	}
+	return 0
+}
+
+func compareTransitionSlices(first []Transition, second []Transition) int {
+	for i, _ := range first {
+		compareResult := compareTransition(first[i], second[i])
+		if compareResult != 0 {
+			return compareResult
+		}
+	}
+	return 0
+}
+
 func (t *Transition) String() string {
 	return fmt.Sprintf("(%c, %d)", t.letter, t.state)
 }
 
-type Children struct {
-	children  map[Transition]struct{}
-	lastChild Transition
-}
-
-func NewChildren(child Transition) *Children {
-	return &Children{
-		children:  map[Transition]struct{}{child: struct{}{}},
-		lastChild: child,
-	}
-}
-
-func (c *Children) addChild(child Transition) {
-	c.children[child] = struct{}{}
-	c.lastChild = child
-}
-
 type DeltaTransitions struct {
 	transitionToState  map[Transition]int
-	stateToTransitions map[int]*Children
+	stateToTransitions map[int][]Transition
 }
 
 func NewDeltaTransitions(transitionToState map[Transition]int) *DeltaTransitions {
-	stateToTransitions := make(map[int]*Children)
+	stateToTransitions := make(map[int][]Transition)
 
 	for transition, goalState := range transitionToState {
-		_, ok := stateToTransitions[transition.state]
-		newTransition := *NewTransition(goalState, transition.letter)
-		if !ok {
-			stateToTransitions[transition.state] = NewChildren(newTransition)
-		} else {
-			stateToTransitions[transition.state].addChild(newTransition)
-		}
+		fmt.Printf("transition: %v\n", transition)
+		children := stateToTransitions[transition.state]
+		children = append(children, *NewTransition(goalState, transition.letter))
+	}
+
+	for _, children := range stateToTransitions {
+		sort.Slice(children, func(i, j int) bool {
+			return children[i].letter < children[j].letter || children[i].state < children[j].state
+		})
 	}
 
 	return &DeltaTransitions{
@@ -60,35 +75,67 @@ func NewDeltaTransitions(transitionToState map[Transition]int) *DeltaTransitions
 }
 
 func (dt *DeltaTransitions) hasChildren(state int) bool {
-	children, ok := dt.stateToTransitions[state]
-	if !ok {
-		return false
+	return len(dt.stateToTransitions[state]) != 0
+}
+
+func (dt *DeltaTransitions) getChildren(state int) []Transition {
+	if dt.stateToTransitions[state] == nil {
+		return []Transition{}
 	}
 
-	if children.children == nil {
-		return false
-	}
-
-	return len(children.children) != 0
+	return (*dt).stateToTransitions[state]
 }
 
 func (dt *DeltaTransitions) addTransition(initialState int, letter rune, goalState int) {
 	dt.transitionToState[*NewTransition(initialState, letter)] = goalState
 
-	_, ok := dt.stateToTransitions[initialState]
-	newTransition := *NewTransition(goalState, letter)
-	if !ok {
-		dt.stateToTransitions[initialState] = NewChildren(newTransition)
+	children := dt.stateToTransitions[initialState]
+	if len(children) > 0 && children[len(children)-1].letter == letter {
+		dt.stateToTransitions[initialState][len(children)-1].state = goalState
 	} else {
-		dt.stateToTransitions[initialState].addChild(newTransition)
+		dt.stateToTransitions[initialState] = append(children, *NewTransition(goalState, letter))
+	}
+
+	if len(dt.stateToTransitions[initialState]) > 1 {
+		if compareTransition(dt.stateToTransitions[initialState][len(dt.stateToTransitions[initialState])-2], *NewTransition(goalState, letter)) == 1 {
+			fmt.Printf("Adding things: (%d, %c, %d)", initialState, letter, goalState)
+			fmt.Printf("Previous in other map: %v\n", dt.stateToTransitions[initialState])
+			fmt.Printf("Previous: %v\n", dt.stateToTransitions[initialState])
+			fmt.Printf("New: %v\n", *NewTransition(goalState, letter))
+			panic("New transition isn't bigger than previous")
+
+		}
 	}
 }
 
-func (dt *DeltaTransitions) removeTransition(initialState int, letter rune, goalState int, newLastChild Transition) {
+func (dt *DeltaTransitions) removeTransition(initialState int, letter rune, goalState int) {
+
+	state, ok := dt.transitionToState[*NewTransition(initialState, letter)]
+	if ok {
+		if state != goalState {
+			panic("We are deleting the wrong thing")
+		}
+	}
 	delete(dt.transitionToState, *NewTransition(initialState, letter))
+
 	outgoing_transitions := dt.stateToTransitions[initialState]
-	delete(outgoing_transitions.children, *NewTransition(goalState, letter))
-	outgoing_transitions.lastChild = newLastChild
+
+	if compareTransition(outgoing_transitions[len(outgoing_transitions)-1], *NewTransition(goalState, letter)) != 0 {
+		panic("We aren't removing last transition\n")
+	}
+
+	dt.stateToTransitions[initialState] = outgoing_transitions[:len(outgoing_transitions)-1]
+	if len(dt.stateToTransitions[initialState]) == 0 {
+		delete(dt.stateToTransitions, initialState)
+	}
+}
+
+func (dt *DeltaTransitions) removeTransitionsFor(state int) {
+	children := dt.stateToTransitions[state]
+	for _, child := range children {
+		delete(dt.transitionToState, *NewTransition(state, child.letter))
+	}
+	delete(dt.stateToTransitions, state)
 }
 
 func (dt *DeltaTransitions) traverse(word string) (bool, int) {
@@ -128,12 +175,7 @@ func (dt *DeltaTransitions) addWord(initialState int, firstNewState int, word st
 }
 
 func (dt *DeltaTransitions) numOutgoing(state int) int {
-	transitions, ok := dt.stateToTransitions[state]
-	if !ok {
-		return 0
-	} else {
-		return len(transitions.children)
-	}
+	return len(dt.stateToTransitions[state])
 }
 
 func (dt *DeltaTransitions) compareOutgoing(first int, second int) bool {
