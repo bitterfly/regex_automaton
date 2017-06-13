@@ -53,9 +53,4 @@ func main() {
 	fmt.Printf("Is minimal? %v\n", (i == eq_c))
 	fmt.Printf("Number of states: %d, %d\n", i, j)
 	fmt.Printf("Number of eq classes: %d\n", eq_c)
-	fmt.Printf("Enters function: %d\n", dfa.GetTimes())
-	fmt.Printf("Enters reduce: %d\n", dfa.GetTimesReduce())
-
-	//	test.Print()
-
 }

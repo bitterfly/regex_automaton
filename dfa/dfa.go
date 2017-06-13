@@ -50,21 +50,12 @@ func BuildDFAFromDict(dict []string) (*DFA, int) {
 		} else {
 			dfa.AddWord(lastState, remaining)
 		}
-
 	}
 	dfa.reduce(1, checked)
 	return dfa, CountStuff(checked)
 }
 
-func GetTimesReduce() int {
-	return TimesReduce
-}
-
-var TimesReduce int = 0
-
 func (d *DFA) reduce(state int, checked *EquivalenceTree) {
-
-	TimesReduce += 1
 	children := d.delta.stateToTransitions[state]
 	child := children[len(children)-1]
 	if d.delta.hasChildren(child.state) {
@@ -74,33 +65,14 @@ func (d *DFA) reduce(state int, checked *EquivalenceTree) {
 	childEquivalenceClass := *NewEquivalenceClass(d.isFinal(child.state), d.delta.getChildren(child.state))
 	childEquivalenceNode := *NewEquivalenceNode(child.state, childEquivalenceClass)
 
-	// if child.state == 27 {
-	// 	fmt.Printf("Equivalence class 27: %v \n", childEquivalenceClass)
-	// 	equivalenceClass15 := *NewEquivalenceClass(d.isFinal(15), d.delta.getChildren(15))
-	// 	fmt.Printf("Equivalence class 15: %v \n", equivalenceClass15)
-	// }
-
 	checked_state, ok := checked.Find(childEquivalenceNode)
 	if checked_state == child.state {
 		return
 	}
 
 	if ok {
-		// if child.state == 168484 {
-		// 	fmt.Printf("We found equivalent to 27: %d\n", checked_state)
-		// 	fmt.Printf("We are removing: %d, %c, %d\n and %d wont be final\n", state, child.letter, child.state, child.state)
-		// 	fmt.Printf("We are addint transition: %d, %c, %d\n\n", state, child.letter, checked_state)
-
-		// 	last := childEquivalenceClass.children[len(childEquivalenceClass.children)-1]
-
-		// 	fmt.Printf("We want to remove: %d, %c, %d\n", child.state, last.letter, last.state)
-		// 	if len(d.delta.stateToTransitions[child.state]) > 1 {
-		// 		panic("We have more than one child ")
-		// 	}
-		// }
 		d.delta.removeTransition(state, child.letter, child.state)
 		d.removeState(child.state)
-		d.delta.removeTransitionsFor(child.state)
 
 		d.delta.addTransition(state, child.letter, checked_state)
 	} else {
@@ -136,6 +108,7 @@ func (d *DFA) removeState(state int) {
 	if d.isFinal(state) {
 		delete(d.finalStates, state)
 	}
+	d.delta.removeTransitionsFor(state)
 }
 
 //===========================Human Friendly======================================
