@@ -90,10 +90,33 @@ func (dt *DeltaTransitions) addTransition(initialState int, letter rune, goalSta
 	dt.transitionToState[*NewTransition(initialState, letter)] = goalState
 
 	children := dt.stateToTransitions[initialState]
-	dt.stateToTransitions[initialState] = append(children, *NewTransition(goalState, letter))
+	if len(children) > 0 && children[len(children)-1].letter == letter {
+		dt.stateToTransitions[initialState][len(children)-1].state = goalState
+	} else {
+		dt.stateToTransitions[initialState] = append(children, *NewTransition(goalState, letter))
+	}
+
+	if len(dt.stateToTransitions[initialState]) > 1 {
+		if compareTransition(dt.stateToTransitions[initialState][len(dt.stateToTransitions[initialState])-2], *NewTransition(goalState, letter)) == 1 {
+			fmt.Printf("Adding things: (%d, %c, %d)", initialState, letter, goalState)
+			fmt.Printf("Previous in other map: %v\n", dt.stateToTransitions[initialState])
+			fmt.Printf("Previous: %v\n", dt.stateToTransitions[initialState])
+			fmt.Printf("New: %v\n", *NewTransition(goalState, letter))
+			panic("New transition isn't bigger than previous")
+
+		}
+	}
 }
 
 func (dt *DeltaTransitions) removeTransition(initialState int, letter rune, goalState int, newLastChild Transition) {
+
+	state, ok := dt.transitionToState[*NewTransition(initialState, letter)]
+	if ok {
+		if state != goalState {
+			panic("We are deleting the wrong thing")
+		}
+	}
+
 	delete(dt.transitionToState, *NewTransition(initialState, letter))
 	outgoing_transitions := dt.stateToTransitions[initialState]
 

@@ -50,6 +50,7 @@ func BuildDFAFromDict(dict []string) *DFA {
 		} else {
 			dfa.AddWord(lastState, remaining)
 		}
+
 	}
 	dfa.reduce(1, checked)
 	return dfa
