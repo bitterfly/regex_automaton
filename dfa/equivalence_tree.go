@@ -20,9 +20,9 @@ type EquivalenceTree struct {
 
 func NewEquivalenceTree(data EquivalenceNode) *EquivalenceTree {
 	return &EquivalenceTree{
-		parent: nil,
 		left:   nil,
 		right:  nil,
+		height: 1,
 		data:   data,
 	}
 }
@@ -77,16 +77,16 @@ func rightLeftRotate(root *EquivalenceTree) *EquivalenceTree {
 func insert(root **EquivalenceTree, data *EquivalenceNode) {
 	if (*root) == nil {
 		(*root) = NewEquivalenceTree(*data)
-		(*root).height = max(height(root.left), height(root.right)) + 1
+		(*root).height = max(height((*root).left), height((*root).right)) + 1
 	}
 
-	compareResult := CompareEquivalenceClasses(root.data.equivalenceClass, data.equivalenceClass)
+	compareResult := CompareEquivalenceClasses(&(*root).data.equivalenceClass, &data.equivalenceClass)
 
 	//data < root.data
 	if compareResult == 1 {
-		(*root).left = insert((*root).left, data)
+		insert(&(*root).left, data)
 		if height((*root).left)-height((*root).right) == 2 {
-			if CompareEquivalenceClasses((*root).left.data.equivalenceClass, data.equivalenceClass) == 1 {
+			if CompareEquivalenceClasses(&(*root).left.data.equivalenceClass, &data.equivalenceClass) == 1 {
 				(*root) = rightRotate((*root))
 			} else {
 				(*root) = leftRightRotate((*root))
@@ -95,9 +95,9 @@ func insert(root **EquivalenceTree, data *EquivalenceNode) {
 	}
 
 	if compareResult == -1 {
-		(*root).right = insert((*root).right, data)
+		insert(&(*root).right, data)
 		if height((*root).right)-height((*root).left) == 2 {
-			if CompareEquivalenceClasses((*root).right.data.equivalenceClass, data.equivalenceClass) == -1 {
+			if CompareEquivalenceClasses(&(*root).right.data.equivalenceClass, &data.equivalenceClass) == -1 {
 				(*root) = leftRotate((*root))
 			} else {
 				(*root) = rightLeftRotate((*root))
@@ -106,4 +106,21 @@ func insert(root **EquivalenceTree, data *EquivalenceNode) {
 	}
 
 	(*root).height = max(height((*root).left), height((*root).right)) + 1
+}
+
+func (t *EquivalenceTree) find(needle EquivalenceNode) (int, bool) {
+	if t == nil {
+		return -1, false
+	}
+
+	compare_result := CompareEquivalenceClasses(&t.data.equivalenceClass, &needle.equivalenceClass)
+	if compare_result == 0 {
+		return t.data.state, true
+	}
+
+	if compare_result == 1 {
+		return t.left.find(needle)
+	} else {
+		return t.right.find(needle)
+	}
 }

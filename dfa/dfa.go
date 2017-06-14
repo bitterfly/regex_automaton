@@ -77,7 +77,7 @@ func (d *DFA) reduce(state int, checked *EquivalenceTree) {
 	childEquivalenceClass := *NewEquivalenceClass(d.isFinal(child.state), d.delta.getChildren(child.state))
 	childEquivalenceNode := *NewEquivalenceNode(child.state, childEquivalenceClass)
 
-	checked_state, ok := checked.Find(childEquivalenceNode)
+	checked_state, ok := checked.find(childEquivalenceNode)
 	if checked_state == child.state {
 		return
 	}
@@ -88,7 +88,7 @@ func (d *DFA) reduce(state int, checked *EquivalenceTree) {
 
 		d.delta.addTransition(state, child.letter, checked_state)
 	} else {
-		Insert(&checked, childEquivalenceNode)
+		insert(&checked, &childEquivalenceNode)
 		d.NumEqClasses += 1
 	}
 }
