@@ -19,7 +19,7 @@ func readWord() chan string {
 	go func() {
 		defer close(dict)
 
-		file, err := os.Open("/tmp/dict.txt")
+		file, err := os.Open("/tmp/s_big_dict.txt")
 		if err != nil {
 			log.Fatal(err)
 		}

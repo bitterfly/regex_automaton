@@ -13,100 +13,115 @@ func NewEquivalenceNode(state int, equivalenceClass EquivalenceClass) *Equivalen
 }
 
 type EquivalenceTree struct {
-	parent *EquivalenceTree
-	left   *EquivalenceTree
-	right  *EquivalenceTree
-	data   EquivalenceNode
+	data        EquivalenceNode
+	height      int
+	left, right *EquivalenceTree
 }
 
 func NewEquivalenceTree(data EquivalenceNode) *EquivalenceTree {
 	return &EquivalenceTree{
-		parent: nil,
+
 		left:   nil,
 		right:  nil,
+		height: 1,
 		data:   data,
 	}
 }
 
-func (t *EquivalenceTree) Find(needle EquivalenceNode) (int, bool) {
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func height(root *EquivalenceTree) int {
+	if root != nil {
+		return root.height
+	} else {
+		return -1
+	}
+}
+
+func leftRotate(root *EquivalenceTree) *EquivalenceTree {
+	node := root.right
+	root.right = node.left
+	node.left = root
+
+	root.height = max(height(root.left), height(root.right)) + 1
+	node.height = max(height(node.left), height(node.right)) + 1
+	return node
+}
+
+func rightRotate(root *EquivalenceTree) *EquivalenceTree {
+	node := root.left
+	root.left = node.right
+	node.right = root
+
+	root.height = max(height(root.left), height(root.right)) + 1
+	node.height = max(height(node.left), height(node.right)) + 1
+	return node
+}
+
+func leftRightRotate(root *EquivalenceTree) *EquivalenceTree {
+	root.left = leftRotate(root.left)
+	root = rightRotate(root)
+	return root
+}
+
+func rightLeftRotate(root *EquivalenceTree) *EquivalenceTree {
+	root.right = rightRotate(root.right)
+	root = leftRotate(root)
+	return root
+}
+
+func insert(root **EquivalenceTree, data *EquivalenceNode) {
+	if (*root) == nil {
+		(*root) = NewEquivalenceTree(*data)
+		(*root).height = max(height((*root).left), height((*root).right)) + 1
+	}
+
+	compareResult := CompareEquivalenceClasses(&(*root).data.equivalenceClass, &data.equivalenceClass)
+
+	//data < root.data
+	if compareResult == 1 {
+		insert(&(*root).left, data)
+		if height((*root).left)-height((*root).right) == 2 {
+			if CompareEquivalenceClasses(&(*root).left.data.equivalenceClass, &data.equivalenceClass) == 1 {
+				(*root) = rightRotate((*root))
+			} else {
+				(*root) = leftRightRotate((*root))
+			}
+		}
+	}
+
+	if compareResult == -1 {
+		insert(&(*root).right, data)
+		if height((*root).right)-height((*root).left) == 2 {
+			if CompareEquivalenceClasses(&(*root).right.data.equivalenceClass, &data.equivalenceClass) == -1 {
+				(*root) = leftRotate((*root))
+			} else {
+				(*root) = rightLeftRotate((*root))
+			}
+		}
+	}
+
+	(*root).height = max(height((*root).left), height((*root).right)) + 1
+}
+
+func (t *EquivalenceTree) find(needle EquivalenceNode) (int, bool) {
 	if t == nil {
 		return -1, false
 	}
 
 	compare_result := CompareEquivalenceClasses(&t.data.equivalenceClass, &needle.equivalenceClass)
 	if compare_result == 0 {
-
-		// if !reflect.DeepEqual(needle.equivalenceClass.children, t.data.equivalenceClass.children) {
-		//  panic("compare said unequal things are equal")
-		// }
 		return t.data.state, true
 	}
 
 	if compare_result == 1 {
-		return t.left.Find(needle)
+		return t.left.find(needle)
 	} else {
-		return t.right.Find(needle)
+		return t.right.find(needle)
 	}
-}
-
-func Insert(node **EquivalenceTree, needle EquivalenceNode) {
-	if (*node) == nil {
-		(*node) = NewEquivalenceTree(needle)
-	} else {
-		compare_result := CompareEquivalenceClasses(&(*node).data.equivalenceClass, &needle.equivalenceClass)
-		if compare_result == 1 {
-			Insert(&(*node).left, needle)
-			(*node).left.parent = (*node)
-		} else {
-			Insert(&(*node).right, needle)
-			(*node).right.parent = (*node)
-		}
-	}
-}
-
-func FindMin(node *EquivalenceTree) *EquivalenceTree {
-	currentNode := node
-	for currentNode.left != nil {
-		currentNode = currentNode.left
-	}
-	return currentNode
-}
-
-func ReplaceNode(node **EquivalenceTree, newNode *EquivalenceTree) {
-	if (*node).parent != nil {
-		if (*node) == (*node).parent.left {
-			(*node).parent.left = newNode
-		} else {
-			(*node).parent.right = newNode
-		}
-	}
-	if newNode != nil {
-		newNode.parent = (*node).parent
-	}
-}
-
-func Delete(node **EquivalenceTree, needle EquivalenceNode) {
-	compare_result := CompareEquivalenceClasses(&(*node).data.equivalenceClass, &needle.equivalenceClass)
-	if compare_result == -1 {
-		Delete(&(*node).right, needle)
-	} else if compare_result == 1 {
-		Delete(&(*node).left, needle)
-	} else {
-		if (*node).left != nil && (*node).right != nil {
-			succesor := FindMin((*node).right)
-			(*node).data = succesor.data
-			Delete(&succesor, succesor.data)
-		} else if (*node).left != nil {
-			ReplaceNode(node, (*node).left)
-		} else if (*node).right != nil {
-			ReplaceNode(node, (*node).right)
-		} else {
-			ReplaceNode(node, nil)
-		}
-	}
-}
-
-func Update(node **EquivalenceTree, oldNode EquivalenceNode, newNode EquivalenceNode) {
-	Delete(node, oldNode)
-	Insert(node, newNode)
 }
