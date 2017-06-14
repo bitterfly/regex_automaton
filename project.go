@@ -14,18 +14,20 @@ import (
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
-func readWord() chan string {
+func readWord(fileName string) chan string {
 	dict := make(chan string, 1000)
 	go func() {
 		defer close(dict)
 
-		file, err := os.Open("/tmp/s_big_dict.txt")
+		file, err := os.Open(fileName)
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		defer file.Close()
 
 		scanner := bufio.NewScanner(file)
+
 		for scanner.Scan() {
 			dict <- scanner.Text()
 		}
@@ -48,14 +50,19 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	dict := readWord()
+	if len(os.Args) != 2 {
+		fmt.Printf("usage: pka filename\n")
+		return
+	}
 
-	start := time.Now()
+	dict := readWord(os.Args[1])
+
+	start_time := time.Now()
 	test := dfa.BuildDFAFromDict(dict)
-	elapsed := time.Since(start)
+	elapsed := time.Since(start_time)
 	//test.Print()
 
-	dict = readWord()
+	dict = readWord(os.Args[1])
 	fmt.Printf("Correct language: %v\nTime: %s\n", test.CheckLanguage(dict), elapsed)
 	//fmt.Printf("Is minimal? %v\n", (i == eq_c))
 	fmt.Printf("Number of states: %d\n", test.NumStates)
