@@ -12,14 +12,7 @@ func NewEquivalenceClass(isFinal bool, children []Transition) *EquivalenceClass 
 	}
 }
 
-func GetTimes() int {
-	return Times
-}
-
-var Times int = 0
-
 func CompareEquivalenceClasses(first, second *EquivalenceClass) int {
-	Times += 1
 	//the final one is bigger
 	if first.isFinal != second.isFinal {
 		if first.isFinal {
