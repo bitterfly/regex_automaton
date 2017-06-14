@@ -8,9 +8,11 @@ import (
 //states are consecutive numbers
 //start state is always 1
 type DFA struct {
-	maxState    int
-	finalStates map[int]struct{}
-	delta       DeltaTransitions
+	maxState     int
+	finalStates  map[int]struct{}
+	delta        DeltaTransitions
+	NumStates    int
+	NumEqClasses int
 }
 
 func NewDFA(maxState int, _finalStates []int, delta map[Transition]int) *DFA {
@@ -20,30 +22,34 @@ func NewDFA(maxState int, _finalStates []int, delta map[Transition]int) *DFA {
 	}
 
 	return &DFA{
-		maxState:    maxState,
-		finalStates: finalStates,
-		delta:       *NewDeltaTransitions(delta),
+		maxState:     maxState,
+		finalStates:  finalStates,
+		delta:        *NewDeltaTransitions(delta),
+		NumStates:    1,
+		NumEqClasses: 1,
 	}
 }
 
 func EmptyAutomaton() *DFA {
 	return &DFA{
-		maxState:    1,
-		finalStates: make(map[int]struct{}),
-		delta:       *NewDeltaTransitions(make(map[Transition]int)),
+		maxState:     1,
+		finalStates:  make(map[int]struct{}),
+		delta:        *NewDeltaTransitions(make(map[Transition]int)),
+		NumStates:    0,
+		NumEqClasses: 0,
 	}
 }
 
-func BuildDFAFromDict(dict <-chan string) (*DFA, int) {
+func BuildDFAFromDict(dict <-chan string) *DFA {
 	checked := &EquivalenceTree{}
 	dfa := EmptyAutomaton()
 
-	i := 0
+	//	i := 0
 	for word := range dict {
-		if i%1000 == 0 {
-			fmt.Printf("%d\n", i)
-		}
-		i += 1
+		// if i%1000 == 0 {
+		// 	fmt.Printf("%d\n", i)
+		// }
+		// i += 1
 
 		remaining, lastState := dfa.delta.commonPrefix(word)
 
@@ -58,7 +64,7 @@ func BuildDFAFromDict(dict <-chan string) (*DFA, int) {
 		}
 	}
 	dfa.reduce(1, checked)
-	return dfa, CountStuff(checked)
+	return dfa
 }
 
 func (d *DFA) reduce(state int, checked *EquivalenceTree) {
@@ -83,6 +89,7 @@ func (d *DFA) reduce(state int, checked *EquivalenceTree) {
 		d.delta.addTransition(state, child.letter, checked_state)
 	} else {
 		Insert(&checked, childEquivalenceNode)
+		d.NumEqClasses += 1
 	}
 }
 
@@ -90,6 +97,7 @@ func (d *DFA) AddWord(state int, word string) {
 	d.addNewStates(len(word))
 	d.finalStates[d.maxState] = struct{}{}
 	d.delta.addWord(state, d.maxState-len(word)+1, word)
+	d.NumStates += len(word)
 }
 
 func (d *DFA) isFinal(state int) bool {
@@ -115,6 +123,7 @@ func (d *DFA) removeState(state int) {
 		delete(d.finalStates, state)
 	}
 	d.delta.removeTransitionsFor(state)
+	d.NumStates -= 1
 }
 
 //===========================Human Friendly======================================
@@ -179,10 +188,7 @@ func (d *DFA) FindCommonPrefix(word string) {
 }
 
 func (d *DFA) CheckLanguage(dict <-chan string) bool {
-	i := 0
 	for word := range dict {
-		fmt.Printf("%d\n", i)
-		i += 1
 		ok, state := d.delta.traverse(word)
 		if !ok {
 			fmt.Printf("No transition: %s\n", word)
@@ -196,28 +202,6 @@ func (d *DFA) CheckLanguage(dict <-chan string) bool {
 	return true
 }
 
-func (d *DFA) Check() {
-	fmt.Printf("Equiv 1:1 %v\n", d.checkEquivalentStates(1, 1))
-	fmt.Printf("Equiv 1:2 %v\n", d.checkEquivalentStates(1, 2))
-}
-
 func (d *DFA) GetMaxState() int {
 	return d.maxState
-}
-
-func (d *DFA) CheckMinimal() bool {
-	for s1, tr1 := range d.delta.stateToTransitions {
-		for s2, tr2 := range d.delta.stateToTransitions {
-			if s1 != s2 {
-				if (len(tr1) == len(tr2)) && (d.isFinal(s1) == d.isFinal(s2)) && compareTransitionSlices(tr1, tr2) == 0 {
-					fmt.Printf("Equal states: %d, %d\n", s1, s2)
-					fmt.Printf("%d: %v\n", s1, d.delta.stateToTransitions[s1])
-					fmt.Printf("%d: %v\n", s2, d.delta.stateToTransitions[s2])
-					return false
-				}
-			}
-		}
-	}
-
-	return true
 }

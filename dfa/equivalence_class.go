@@ -151,11 +151,3 @@ func Update(node **EquivalenceTree, oldNode EquivalenceNode, newNode Equivalence
 	Delete(node, oldNode)
 	Insert(node, newNode)
 }
-
-func CountStuff(t *EquivalenceTree) int {
-	if t == nil {
-		return 0
-	}
-
-	return CountStuff(t.left) + CountStuff(t.right) + 1
-}
