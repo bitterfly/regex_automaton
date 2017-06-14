@@ -34,11 +34,17 @@ func EmptyAutomaton() *DFA {
 	}
 }
 
-func BuildDFAFromDict(dict []string) (*DFA, int) {
+func BuildDFAFromDict(dict <-chan string) (*DFA, int) {
 	checked := &EquivalenceTree{}
 	dfa := EmptyAutomaton()
 
-	for _, word := range dict {
+	i := 0
+	for word := range dict {
+		if i%1000 == 0 {
+			fmt.Printf("%d\n", i)
+		}
+		i += 1
+
 		remaining, lastState := dfa.delta.commonPrefix(word)
 
 		if dfa.delta.hasChildren(lastState) {
@@ -172,8 +178,11 @@ func (d *DFA) FindCommonPrefix(word string) {
 	fmt.Printf("Word: %s\nRemaining: %s, last_state: %d\n\n", word, remaining, state)
 }
 
-func (d *DFA) CheckLanguage(dict []string) bool {
-	for _, word := range dict {
+func (d *DFA) CheckLanguage(dict <-chan string) bool {
+	i := 0
+	for word := range dict {
+		fmt.Printf("%d\n", i)
+		i += 1
 		ok, state := d.delta.traverse(word)
 		if !ok {
 			fmt.Printf("No transition: %s\n", word)

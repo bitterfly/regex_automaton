@@ -14,6 +14,29 @@ import (
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
+func readWord() chan string {
+	dict := make(chan string, 1000)
+	go func() {
+		defer close(dict)
+
+		file, err := os.Open("/tmp/s_big_dict.txt")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer file.Close()
+
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			dict <- scanner.Text()
+		}
+
+		if err := scanner.Err(); err != nil {
+			log.Fatal(err)
+		}
+	}()
+	return dict
+}
+
 func main() {
 	flag.Parse()
 	if *cpuprofile != "" {
@@ -25,22 +48,7 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	file, err := os.Open("/tmp/dict.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	var dict []string
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		dict = append(dict, scanner.Text())
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
+	dict := readWord()
 
 	start := time.Now()
 	test, eq_c := dfa.BuildDFAFromDict(dict)
@@ -48,6 +56,8 @@ func main() {
 	//test.Print()
 
 	i, j := test.CountStates()
+
+	dict = readWord()
 
 	fmt.Printf("Correct language: %v\nTime: %s\n", test.CheckLanguage(dict), elapsed)
 	fmt.Printf("Is minimal? %v\n", (i == eq_c))
