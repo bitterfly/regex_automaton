@@ -61,11 +61,13 @@ func main() {
 
 	test := dfa.BuildDFAFromDict(dict)
 	elapsed := time.Since(start_time)
-	test.Print()
+	//test.Print()
 
 	dict = readWord(os.Args[1])
 	fmt.Printf("Correct language: %v\nTime: %s\n", test.CheckLanguage(dict), elapsed)
 	//fmt.Printf("Is minimal? %v\n", (i == eq_c))
 	fmt.Printf("Number of states: %d\n", test.NumStates)
 	fmt.Printf("Number of eq classes: %d\n", test.NumEqClasses)
+
+	test.DotGraph("a.dot")
 }

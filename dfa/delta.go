@@ -57,7 +57,6 @@ func NewDeltaTransitions(transitionToState map[Transition]int) *DeltaTransitions
 	stateToTransitions := make(map[int][]Transition)
 
 	for transition, goalState := range transitionToState {
-		fmt.Printf("transition: %v\n", transition)
 		children := stateToTransitions[transition.state]
 		children = append(children, *NewTransition(goalState, transition.letter))
 	}
@@ -153,19 +152,21 @@ func (dt *DeltaTransitions) traverse(word string) (bool, int) {
 	return true, state
 }
 
-func (dt *DeltaTransitions) commonPrefix(word string) (string, int) {
+func (dt *DeltaTransitions) commonPrefix(word []rune) ([]rune, int) {
 	last_state := 1
 	for index, letter := range word {
 		state, ok := (dt.transitionToState[*NewTransition(last_state, letter)])
 		if !ok {
-			return word[index:], last_state
+			remaining := make([]rune, len(word[index:]))
+			copy(remaining, word[index:])
+			return remaining, last_state
 		}
 		last_state = state
 	}
-	return "", last_state
+	return nil, last_state
 }
 
-func (dt *DeltaTransitions) addWord(initialState int, firstNewState int, word string) {
+func (dt *DeltaTransitions) addWord(initialState int, firstNewState int, word []rune) {
 	currentState := firstNewState
 	for index, letter := range word {
 		if index == 0 {

@@ -42,10 +42,9 @@ func EmptyAutomaton() *DFA {
 }
 
 func BuildDFAFromDict(dict <-chan string) *DFA {
-	checked := &EquivalenceTree{}
+	var checked *EquivalenceTree
 	dfa := EmptyAutomaton()
 
-	fmt.Printf("Begin function \n %s\n\n", checked.print())
 	//	i := 0
 	for word := range dict {
 		// if i%1000 == 0 {
@@ -53,14 +52,18 @@ func BuildDFAFromDict(dict <-chan string) *DFA {
 		// }
 		// i += 1
 
-		remaining, lastState := dfa.delta.commonPrefix(word)
+		runeWord := make([]rune, 0, len(word))
+		for _, r := range word {
+			runeWord = append(runeWord, r)
+		}
+
+		remaining, lastState := dfa.delta.commonPrefix(runeWord)
 
 		if dfa.delta.hasChildren(lastState) {
 			dfa.reduce(lastState, &checked)
 		}
-		//fmt.Printf("Remaining: %s\n", remaining)
 
-		if remaining == "" {
+		if len(remaining) == 0 {
 			dfa.makeFinal(lastState)
 		} else {
 			dfa.AddWord(lastState, remaining)
@@ -86,22 +89,20 @@ func (d *DFA) reduce(state int, checked **EquivalenceTree) {
 	}
 
 	if ok {
-		fmt.Printf("Found equivalent: %d - %d", checked_state, child.state)
 		d.delta.removeTransition(state, child.letter, child.state)
 		d.removeState(child.state)
 
 		d.delta.addTransition(state, child.letter, checked_state)
 	} else {
-		fmt.Printf("Put in tree (%d [%v, %v])\n\n", childEquivalenceNode.state, childEquivalenceClass.isFinal, childEquivalenceClass.children)
 		(*checked) = insert((*checked), &childEquivalenceNode)
-		fmt.Printf("Tree after insert:\n %s \n", (*checked).print())
+		//fmt.Printf("Tree after insert:\n %s \n", (*checked).print())
 		d.NumEqClasses += 1
 	}
 }
 
-func (d *DFA) AddWord(state int, word string) {
+func (d *DFA) AddWord(state int, word []rune) {
 	d.addNewStates(len(word))
-	d.finalStates[d.maxState] = struct{}{}
+	d.makeFinal(d.maxState)
 	d.delta.addWord(state, d.maxState-len(word)+1, word)
 	d.NumStates += len(word)
 }
@@ -133,7 +134,7 @@ func (d *DFA) removeState(state int) {
 }
 
 //===========================Human Friendly======================================
-func (d *DFA) CountStates() (int, int) {
+func (d *DFA) CountStates() {
 	states := make(map[int]struct{})
 
 	for tr, i := range d.delta.transitionToState {
@@ -149,7 +150,8 @@ func (d *DFA) CountStates() (int, int) {
 		}
 	}
 
-	return len(states), len(states_2)
+	fmt.Printf("First function unique states: %v\n", states)
+	fmt.Printf("Second function unique states: %v\n", states_2)
 }
 
 func (d *DFA) sortedFinalStates() []int {
@@ -168,20 +170,26 @@ func (d *DFA) Print() {
 	fmt.Printf("\n====AFD====\n")
 }
 
-func (d *DFA) PrintFunction() {
-	fmt.Printf("(p, a) -> q\n\n")
-
-	f, _ := os.Create("a.dot")
+func (d *DFA) DotGraph(filename string) {
+	f, _ := os.Create(filename)
 	defer f.Close()
 	fmt.Fprintf(f, "digraph gs {\n")
 	for transition, goalState := range d.delta.transitionToState {
-		fmt.Printf("(%d, %c) -> %d)\n", transition.state, transition.letter, goalState)
 		fmt.Fprintf(f, "%d -> %d [label=\"%c\"];\n", transition.state, goalState, transition.letter)
-		if d.isFinal(goalState) {
-			fmt.Fprintf(f, "%d [style=filled,color=\"0.2 0.9 0.85\"];\n", goalState)
-		}
+	}
+	for finalState, _ := range d.finalStates {
+		fmt.Fprintf(f, "%d [style=filled,color=\"0.2 0.9 0.85\"];\n", finalState)
 	}
 	fmt.Fprintf(f, "}\n")
+
+}
+
+func (d *DFA) PrintFunction() {
+	fmt.Printf("(p, a) -> q\n\n")
+
+	for transition, goalState := range d.delta.transitionToState {
+		fmt.Printf("(%d, %c) -> %d)\n", transition.state, transition.letter, goalState)
+	}
 
 	fmt.Printf("\np -> (a, q)\n\n")
 	for initialState, children := range d.delta.stateToTransitions {
@@ -200,11 +208,6 @@ func (d *DFA) Traverse(word string) {
 	} else {
 		fmt.Printf("%s leads to %d\n", word, state)
 	}
-}
-
-func (d *DFA) FindCommonPrefix(word string) {
-	remaining, state := d.delta.commonPrefix(word)
-	fmt.Printf("Word: %s\nRemaining: %s, last_state: %d\n\n", word, remaining, state)
 }
 
 func (d *DFA) CheckLanguage(dict <-chan string) bool {
