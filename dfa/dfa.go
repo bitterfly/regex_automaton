@@ -2,6 +2,7 @@ package dfa
 
 import (
 	"fmt"
+	"os"
 	"sort"
 )
 
@@ -44,6 +45,7 @@ func BuildDFAFromDict(dict <-chan string) *DFA {
 	checked := &EquivalenceTree{}
 	dfa := EmptyAutomaton()
 
+	fmt.Printf("Begin function \n %s\n\n", checked.print())
 	//	i := 0
 	for word := range dict {
 		// if i%1000 == 0 {
@@ -54,8 +56,9 @@ func BuildDFAFromDict(dict <-chan string) *DFA {
 		remaining, lastState := dfa.delta.commonPrefix(word)
 
 		if dfa.delta.hasChildren(lastState) {
-			dfa.reduce(lastState, checked)
+			dfa.reduce(lastState, &checked)
 		}
+		//fmt.Printf("Remaining: %s\n", remaining)
 
 		if remaining == "" {
 			dfa.makeFinal(lastState)
@@ -63,11 +66,11 @@ func BuildDFAFromDict(dict <-chan string) *DFA {
 			dfa.AddWord(lastState, remaining)
 		}
 	}
-	dfa.reduce(1, checked)
+	dfa.reduce(1, &checked)
 	return dfa
 }
 
-func (d *DFA) reduce(state int, checked *EquivalenceTree) {
+func (d *DFA) reduce(state int, checked **EquivalenceTree) {
 	children := d.delta.stateToTransitions[state]
 	child := children[len(children)-1]
 	if d.delta.hasChildren(child.state) {
@@ -77,18 +80,21 @@ func (d *DFA) reduce(state int, checked *EquivalenceTree) {
 	childEquivalenceClass := *NewEquivalenceClass(d.isFinal(child.state), d.delta.getChildren(child.state))
 	childEquivalenceNode := *NewEquivalenceNode(child.state, childEquivalenceClass)
 
-	checked_state, ok := checked.find(childEquivalenceNode)
+	checked_state, ok := (*checked).find(childEquivalenceNode)
 	if checked_state == child.state {
 		return
 	}
 
 	if ok {
+		fmt.Printf("Found equivalent: %d - %d", checked_state, child.state)
 		d.delta.removeTransition(state, child.letter, child.state)
 		d.removeState(child.state)
 
 		d.delta.addTransition(state, child.letter, checked_state)
 	} else {
-		insert(&checked, &childEquivalenceNode)
+		fmt.Printf("Put in tree (%d [%v, %v])\n\n", childEquivalenceNode.state, childEquivalenceClass.isFinal, childEquivalenceClass.children)
+		(*checked) = insert((*checked), &childEquivalenceNode)
+		fmt.Printf("Tree after insert:\n %s \n", (*checked).print())
 		d.NumEqClasses += 1
 	}
 }
@@ -164,12 +170,26 @@ func (d *DFA) Print() {
 
 func (d *DFA) PrintFunction() {
 	fmt.Printf("(p, a) -> q\n\n")
+
+	f, _ := os.Create("a.dot")
+	defer f.Close()
+	fmt.Fprintf(f, "digraph gs {\n")
 	for transition, goalState := range d.delta.transitionToState {
 		fmt.Printf("(%d, %c) -> %d)\n", transition.state, transition.letter, goalState)
+		fmt.Fprintf(f, "%d -> %d [label=\"%c\"];\n", transition.state, goalState, transition.letter)
+		if d.isFinal(goalState) {
+			fmt.Fprintf(f, "%d [style=filled,color=\"0.2 0.9 0.85\"];\n", goalState)
+		}
 	}
+	fmt.Fprintf(f, "}\n")
+
 	fmt.Printf("\np -> (a, q)\n\n")
 	for initialState, children := range d.delta.stateToTransitions {
-		fmt.Printf("%d -> %v \n", initialState, children)
+		fmt.Printf("%d -> [", initialState)
+		for _, child := range children {
+			fmt.Printf("(%c, %d),", child.letter, child.state)
+		}
+		fmt.Printf("]\n")
 	}
 }
 

@@ -87,6 +87,9 @@ func (dt *DeltaTransitions) getChildren(state int) []Transition {
 }
 
 func (dt *DeltaTransitions) addTransition(initialState int, letter rune, goalState int) {
+	// if goalState == 0 {
+	// 	panic("WTF")
+	// }
 	dt.transitionToState[*NewTransition(initialState, letter)] = goalState
 
 	children := dt.stateToTransitions[initialState]

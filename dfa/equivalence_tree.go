@@ -1,5 +1,7 @@
 package dfa
 
+import "fmt"
+
 type EquivalenceNode struct {
 	state            int
 	equivalenceClass EquivalenceClass
@@ -75,38 +77,40 @@ func rightLeftRotate(root *EquivalenceTree) *EquivalenceTree {
 	return root
 }
 
-func insert(root **EquivalenceTree, data *EquivalenceNode) {
-	if (*root) == nil {
-		(*root) = NewEquivalenceTree(*data)
-		(*root).height = max(height((*root).left), height((*root).right)) + 1
+func insert(root *EquivalenceTree, data *EquivalenceNode) *EquivalenceTree {
+	if root == nil {
+		root = NewEquivalenceTree(*data)
+		root.height = max(height(root.left), height(root.right)) + 1
+		return root
 	}
 
-	compareResult := CompareEquivalenceClasses(&(*root).data.equivalenceClass, &data.equivalenceClass)
+	compareResult := CompareEquivalenceClasses(&root.data.equivalenceClass, &data.equivalenceClass)
 
 	//data < root.data
 	if compareResult == 1 {
-		insert(&(*root).left, data)
-		if height((*root).left)-height((*root).right) == 2 {
-			if CompareEquivalenceClasses(&(*root).left.data.equivalenceClass, &data.equivalenceClass) == 1 {
-				(*root) = rightRotate((*root))
+		root.left = insert(root.left, data)
+		if height(root.left)-height(root.right) == 2 {
+			if CompareEquivalenceClasses(&root.left.data.equivalenceClass, &data.equivalenceClass) == 1 {
+				root = rightRotate(root)
 			} else {
-				(*root) = leftRightRotate((*root))
+				root = leftRightRotate(root)
 			}
 		}
 	}
 
 	if compareResult == -1 {
-		insert(&(*root).right, data)
-		if height((*root).right)-height((*root).left) == 2 {
-			if CompareEquivalenceClasses(&(*root).right.data.equivalenceClass, &data.equivalenceClass) == -1 {
-				(*root) = leftRotate((*root))
+		root.right = insert(root.right, data)
+		if height(root.right)-height(root.left) == 2 {
+			if CompareEquivalenceClasses(&root.right.data.equivalenceClass, &data.equivalenceClass) == -1 {
+				root = leftRotate(root)
 			} else {
-				(*root) = rightLeftRotate((*root))
+				root = rightLeftRotate(root)
 			}
 		}
 	}
 
-	(*root).height = max(height((*root).left), height((*root).right)) + 1
+	root.height = max(height(root.left), height(root.right)) + 1
+	return root
 }
 
 func (t *EquivalenceTree) find(needle EquivalenceNode) (int, bool) {
@@ -124,4 +128,12 @@ func (t *EquivalenceTree) find(needle EquivalenceNode) (int, bool) {
 	} else {
 		return t.right.find(needle)
 	}
+}
+
+func (t *EquivalenceTree) print() string {
+	if t == nil {
+		return ")"
+	}
+
+	return fmt.Sprintf(" (%d: %v, %s, %s", t.data.state, t.data.equivalenceClass, t.left.print(), t.right.print())
 }

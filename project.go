@@ -58,9 +58,10 @@ func main() {
 	dict := readWord(os.Args[1])
 
 	start_time := time.Now()
+
 	test := dfa.BuildDFAFromDict(dict)
 	elapsed := time.Since(start_time)
-	//test.Print()
+	test.Print()
 
 	dict = readWord(os.Args[1])
 	fmt.Printf("Correct language: %v\nTime: %s\n", test.CheckLanguage(dict), elapsed)
