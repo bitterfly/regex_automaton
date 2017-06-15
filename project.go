@@ -70,4 +70,5 @@ func main() {
 	fmt.Printf("Number of eq classes: %d\n", test.NumEqClasses)
 
 	test.DotGraph("a.dot")
+	//fmt.Printf("Check real minimality: %v\n", test.CheckMinimal())
 }

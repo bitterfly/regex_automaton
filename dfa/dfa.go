@@ -228,3 +228,20 @@ func (d *DFA) CheckLanguage(dict <-chan string) bool {
 func (d *DFA) GetMaxState() int {
 	return d.maxState
 }
+
+func (d *DFA) CheckMinimal() bool {
+	for s1, tr1 := range d.delta.stateToTransitions {
+		for s2, tr2 := range d.delta.stateToTransitions {
+			if s1 != s2 {
+				if (len(tr1) == len(tr2)) && (d.isFinal(s1) == d.isFinal(s2)) && compareTransitionSlices(tr1, tr2) == 0 {
+					fmt.Printf("Equal states: %d, %d\n", s1, s2)
+					fmt.Printf("%d: %v\n", s1, d.delta.stateToTransitions[s1])
+					fmt.Printf("%d: %v\n", s2, d.delta.stateToTransitions[s2])
+					return false
+				}
+			}
+		}
+	}
+
+	return true
+}
