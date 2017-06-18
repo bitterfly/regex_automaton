@@ -60,17 +60,14 @@ func main() {
 	letter := regex.LetterExpressionNDFA(5, 'a')
 	letter.Print()
 
-	concatenation := regex.ConcatenateExpressionsNDFA(epsilon, letter)
+	union := regex.UnionExpressionsNDFA(2, epsilon, letter)
+
+	epsilon2 := regex.EmptyExpressionNDFA(8)
+	doubleUnion := regex.UnionExpressionsNDFA(1, epsilon2, union)
+
+	concatenation := regex.ConcatenateExpressionsNDFA(doubleUnion, letter)
 	concatenation.Print()
 	concatenation.Dot("a.dot")
-
-	// union := regex.UnionExpressionsNDFA(2, epsilon, letter)
-
-	// epsilon2 := regex.EmptyExpressionNDFA(8)
-	// doubleUnion := regex.UnionExpressionsNDFA(1, epsilon2, union)
-
-	// doubleUnion.Print()
-	// doubleUnion.Dot("a.dot")
 
 	//=====================
 	// dict := readWord(os.Args[1])
