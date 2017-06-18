@@ -3,47 +3,27 @@ package dfa
 import (
 	"fmt"
 	"os"
-	"sort"
+
+	"github.com/bitterfly/pka/automaton"
 )
 
 //states are consecutive numbers
 //start state is always 1
 type DFA struct {
-	maxState     int
-	finalStates  map[int]struct{}
-	delta        DeltaTransitions
-	NumStates    int
-	NumEqClasses int
+	automaton *automaton.FA
+	delta     DeltaTransitions
 }
 
-func NewDFA(maxState int, _finalStates []int, delta map[Transition]int) *DFA {
-	finalStates := make(map[int]struct{})
-	for _, state := range _finalStates {
-		finalStates[state] = struct{}{}
-	}
-
+func EmptyDFA() *DFA {
 	return &DFA{
-		maxState:     maxState,
-		finalStates:  finalStates,
-		delta:        *NewDeltaTransitions(delta),
-		NumStates:    1,
-		NumEqClasses: 1,
-	}
-}
-
-func EmptyAutomaton() *DFA {
-	return &DFA{
-		maxState:     1,
-		finalStates:  make(map[int]struct{}),
-		delta:        *NewDeltaTransitions(make(map[Transition]int)),
-		NumStates:    0,
-		NumEqClasses: 0,
+		automaton: automaton.EmptyAutomaton(),
+		delta:     *NewDeltaTransitions(make(map[Transition]int)),
 	}
 }
 
 func BuildDFAFromDict(dict <-chan string) *DFA {
 	var checked *EquivalenceTree
-	dfa := EmptyAutomaton()
+	dfa := EmptyDFA()
 
 	//	i := 0
 	for word := range dict {
@@ -96,19 +76,19 @@ func (d *DFA) reduce(state int, checked **EquivalenceTree) {
 	} else {
 		(*checked) = insert((*checked), &childEquivalenceNode)
 		//fmt.Printf("Tree after insert:\n %s \n", (*checked).print())
-		d.NumEqClasses += 1
+		d.automaton.NumEqClasses += 1
 	}
 }
 
 func (d *DFA) AddWord(state int, word []rune) {
 	d.addNewStates(len(word))
-	d.makeFinal(d.maxState)
-	d.delta.addWord(state, d.maxState-len(word)+1, word)
-	d.NumStates += len(word)
+	d.makeFinal(d.automaton.MaxState)
+	d.delta.addWord(state, d.automaton.MaxState-len(word)+1, word)
+	d.automaton.NumStates += len(word)
 }
 
 func (d *DFA) isFinal(state int) bool {
-	_, ok := d.finalStates[state]
+	_, ok := d.automaton.FinalStates[state]
 	return ok
 }
 
@@ -118,19 +98,19 @@ func (d *DFA) checkEquivalentStates(first int, second int) bool {
 }
 
 func (d *DFA) addNewStates(number int) {
-	d.maxState += number
+	d.automaton.MaxState += number
 }
 
 func (d *DFA) makeFinal(state int) {
-	d.finalStates[state] = struct{}{}
+	d.automaton.FinalStates[state] = struct{}{}
 }
 
 func (d *DFA) removeState(state int) {
 	if d.isFinal(state) {
-		delete(d.finalStates, state)
+		delete(d.automaton.FinalStates, state)
 	}
 	d.delta.removeTransitionsFor(state)
-	d.NumStates -= 1
+	d.automaton.NumStates -= 1
 }
 
 //===========================Human Friendly======================================
@@ -154,18 +134,9 @@ func (d *DFA) CountStates() {
 	fmt.Printf("Second function unique states: %v\n", states_2)
 }
 
-func (d *DFA) sortedFinalStates() []int {
-	var states []int
-	for k, _ := range d.finalStates {
-		states = append(states, k)
-	}
-	sort.Ints(states)
-	return states
-}
-
 func (d *DFA) Print() {
 	fmt.Printf("====DFA====\n")
-	fmt.Printf("Max: %d, Final: %v\n", d.maxState, d.sortedFinalStates())
+	fmt.Printf("Max: %d, Final: %v\n", d.automaton.MaxState, d.automaton.SortedFinalStates())
 	d.PrintFunction()
 	fmt.Printf("\n====AFD====\n")
 }
@@ -177,7 +148,7 @@ func (d *DFA) DotGraph(filename string) {
 	for transition, goalState := range d.delta.transitionToState {
 		fmt.Fprintf(f, "%d -> %d [label=\"%c\"];\n", transition.state, goalState, transition.letter)
 	}
-	for finalState, _ := range d.finalStates {
+	for finalState, _ := range d.automaton.FinalStates {
 		fmt.Fprintf(f, "%d [style=filled,color=\"0.2 0.9 0.85\"];\n", finalState)
 	}
 	fmt.Fprintf(f, "}\n")
@@ -226,7 +197,7 @@ func (d *DFA) CheckLanguage(dict <-chan string) bool {
 }
 
 func (d *DFA) GetMaxState() int {
-	return d.maxState
+	return d.automaton.MaxState
 }
 
 func (d *DFA) CheckMinimal() bool {
@@ -244,4 +215,8 @@ func (d *DFA) CheckMinimal() bool {
 	}
 
 	return true
+}
+
+func (d *DFA) GetAutomaton() *automaton.FA {
+	return d.automaton
 }
