@@ -58,21 +58,18 @@ func UnionExpressionsNDFA(initialState int, first, second *NDFA) *NDFA {
 // 	n.delta.transitions = newTransitions
 // }
 
-// func ConcatenateExpressionsNDFA(first, second *NDFA) *NDFA {
-// 	delta := NewMultipleEmptyTransition()
-// 	second.MoveToInitial(first.automaton.GetFinalState())
-// 	delta.addTransitions(first.delta)
-// 	delta.addTransitions(second.delta)
+func ConcatenateExpressionsNDFA(first, second *NDFA) *NDFA {
+	delta := NewMultipleEmptyTransition()
 
-// 	// /func NewFA(maxState int, numStates int, eqClasses int, _finalStates []int)
-// 	numStates := first.automaton.NumStates + second.automaton.NumStates
-// 	automaton := automaton.NewFA(second.automaton.MaxState, numStates, 0, []int{second.automaton.GetFinalState()})
+	delta.addTransition(first.finalState, 0, second.initialState)
 
-// 	return &NDFA{
-// 		automaton: automaton,
-// 		delta:     delta,
-// 	}
-// }
+	delta.addTransitions(first.delta)
+	delta.addTransitions(second.delta)
+
+	numStates := first.numStates + second.numStates
+
+	return NewNDFA(first.initialState, numStates, second.finalState, delta)
+}
 
 //=================================================
 
