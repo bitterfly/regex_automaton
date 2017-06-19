@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"sort"
+
+	"github.com/bitterfly/pka/common"
 )
 
 //states are consecutive numbers
@@ -22,7 +24,7 @@ func EmptyDFA() *DFA {
 		finalStates:  make(map[int]struct{}),
 		numStates:    1,
 		numEqClasses: 1,
-		delta:        *NewDeltaTransitions(make(map[Transition]int)),
+		delta:        *NewDeltaTransitions(make(map[common.Transition]int)),
 	}
 }
 
@@ -55,23 +57,23 @@ func BuildDFAFromDict(dict <-chan string) *DFA {
 func (d *DFA) reduce(state int, checked **EquivalenceTree) {
 	children := d.delta.stateToTransitions[state]
 	child := children[len(children)-1]
-	if d.delta.hasChildren(child.state) {
-		d.reduce(child.state, checked)
+	if d.delta.hasChildren(child.GetState()) {
+		d.reduce(child.GetState(), checked)
 	}
 
-	childEquivalenceClass := *NewEquivalenceClass(d.isFinal(child.state), d.delta.getChildren(child.state))
-	childEquivalenceNode := *NewEquivalenceNode(child.state, childEquivalenceClass)
+	childEquivalenceClass := *NewEquivalenceClass(d.isFinal(child.GetState()), d.delta.getChildren(child.GetState()))
+	childEquivalenceNode := *NewEquivalenceNode(child.GetState(), childEquivalenceClass)
 
 	checked_state, ok := (*checked).find(childEquivalenceNode)
-	if checked_state == child.state {
+	if checked_state == child.GetState() {
 		return
 	}
 
 	if ok {
-		d.delta.removeTransition(state, child.letter, child.state)
-		d.removeState(child.state)
+		d.delta.removeTransition(state, child.GetLetter(), child.GetState())
+		d.removeState(child.GetState())
 
-		d.delta.addTransition(state, child.letter, checked_state)
+		d.delta.addTransition(state, child.GetLetter(), checked_state)
 	} else {
 		(*checked) = insert((*checked), &childEquivalenceNode)
 		//fmt.Printf("Tree after insert:\n %s \n", (*checked).print())
@@ -117,7 +119,7 @@ func (d *DFA) CountStates() {
 	states := make(map[int]struct{})
 
 	for tr, i := range d.delta.transitionToState {
-		states[tr.state] = struct{}{}
+		states[tr.GetState()] = struct{}{}
 		states[i] = struct{}{}
 	}
 
@@ -125,7 +127,7 @@ func (d *DFA) CountStates() {
 	for i, tr_2 := range d.delta.stateToTransitions {
 		states_2[i] = struct{}{}
 		for _, t := range tr_2 {
-			states_2[t.state] = struct{}{}
+			states_2[t.GetState()] = struct{}{}
 		}
 	}
 
@@ -145,7 +147,7 @@ func (d *DFA) DotGraph(filename string) {
 	defer f.Close()
 	fmt.Fprintf(f, "digraph gs {\n")
 	for transition, goalState := range d.delta.transitionToState {
-		fmt.Fprintf(f, "%d -> %d [label=\"%c\"];\n", transition.state, goalState, transition.letter)
+		fmt.Fprintf(f, "%d -> %d [label=\"%c\"];\n", transition.GetState(), goalState, transition.GetLetter())
 	}
 	for finalState, _ := range d.finalStates {
 		fmt.Fprintf(f, "%d [style=filled,color=\"0.2 0.9 0.85\"];\n", finalState)
@@ -158,14 +160,14 @@ func (d *DFA) PrintFunction() {
 	fmt.Printf("(p, a) -> q\n\n")
 
 	for transition, goalState := range d.delta.transitionToState {
-		fmt.Printf("(%d, %c) -> %d)\n", transition.state, transition.letter, goalState)
+		fmt.Printf("(%d, %c) -> %d)\n", transition.GetState(), transition.GetLetter(), goalState)
 	}
 
 	fmt.Printf("\np -> (a, q)\n\n")
 	for initialState, children := range d.delta.stateToTransitions {
 		fmt.Printf("%d -> [", initialState)
 		for _, child := range children {
-			fmt.Printf("(%c, %d),", child.letter, child.state)
+			fmt.Printf("(%c, %d),", child.GetLetter(), child.GetState())
 		}
 		fmt.Printf("]\n")
 	}
@@ -203,7 +205,7 @@ func (d *DFA) CheckMinimal() bool {
 	for s1, tr1 := range d.delta.stateToTransitions {
 		for s2, tr2 := range d.delta.stateToTransitions {
 			if s1 != s2 {
-				if (len(tr1) == len(tr2)) && (d.isFinal(s1) == d.isFinal(s2)) && compareTransitionSlices(tr1, tr2) == 0 {
+				if (len(tr1) == len(tr2)) && (d.isFinal(s1) == d.isFinal(s2)) && common.CompareTransitionSlices(tr1, tr2) == 0 {
 					fmt.Printf("Equal states: %d, %d\n", s1, s2)
 					fmt.Printf("%d: %v\n", s1, d.delta.stateToTransitions[s1])
 					fmt.Printf("%d: %v\n", s2, d.delta.stateToTransitions[s2])

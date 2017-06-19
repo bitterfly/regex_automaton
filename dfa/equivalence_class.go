@@ -1,11 +1,13 @@
 package dfa
 
+import "github.com/bitterfly/pka/common"
+
 type EquivalenceClass struct {
 	isFinal  bool
-	children []Transition
+	children []common.Transition
 }
 
-func NewEquivalenceClass(isFinal bool, children []Transition) *EquivalenceClass {
+func NewEquivalenceClass(isFinal bool, children []common.Transition) *EquivalenceClass {
 	return &EquivalenceClass{
 		isFinal:  isFinal,
 		children: children,
@@ -31,5 +33,5 @@ func CompareEquivalenceClasses(first, second *EquivalenceClass) int {
 		return -1
 	}
 
-	return compareTransitionSlices(first.children, second.children)
+	return common.CompareTransitionSlices(first.children, second.children)
 }

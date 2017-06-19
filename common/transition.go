@@ -7,11 +7,23 @@ type Transition struct {
 	state  int
 }
 
+func (t *Transition) GetLetter() rune {
+	return t.letter
+}
+
+func (t *Transition) GetState() int {
+	return t.state
+}
+
+func (t *Transition) SetState(state int) {
+	t.state = state
+}
+
 func NewTransition(state int, letter rune) *Transition {
 	return &Transition{letter: letter, state: state}
 }
 
-func compareTransition(first, second Transition) int {
+func CompareTransition(first, second Transition) int {
 	if first.letter != second.letter {
 		if first.letter > second.letter {
 			return 1
@@ -30,9 +42,9 @@ func compareTransition(first, second Transition) int {
 	return 0
 }
 
-func compareTransitionSlices(first []Transition, second []Transition) int {
+func CompareTransitionSlices(first []Transition, second []Transition) int {
 	for i, _ := range first {
-		compareResult := compareTransition(first[i], second[i])
+		compareResult := CompareTransition(first[i], second[i])
 		if compareResult != 0 {
 			return compareResult
 		}
