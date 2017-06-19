@@ -56,11 +56,21 @@ func main() {
 
 	//===================================
 
-	epsilon := regex.EmptyExpressionNDFA(3, 4)
-	epsilon.Print()
+	parser := regex.NewRegexParser()
+	fmt.Printf("((a.b)|(c)*)\n")
+	ndfa := parser.Parse("ba.c*|")
+	ndfa.Print()
+	ndfa.Dot("a.dot")
 
-	// letter := regex.LetterExpressionNDFA(5, 'a')
+	// epsilon := regex.EmptyExpressionNDFA(3, 4)
+	// epsilon.Print()
+
+	// letter := regex.LetterExpressionNDFA(5, 6, 'a')
 	// letter.Print()
+
+	// kleene := regex.KleeneExpressionNDFA(4, 7, letter)
+	// kleene.Print()
+	// kleene.Dot("a.dot")
 
 	// union := regex.UnionExpressionsNDFA(2, epsilon, letter)
 
