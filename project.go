@@ -7,9 +7,8 @@ import (
 	"log"
 	"os"
 	"runtime/pprof"
-	"time"
 
-	"github.com/bitterfly/pka/dfa"
+	"github.com/bitterfly/pka/regex"
 )
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
@@ -57,8 +56,8 @@ func main() {
 
 	//===================================
 
-	// epsilon := regex.EmptyExpressionNDFA(3)
-	// epsilon.Print()
+	epsilon := regex.EmptyExpressionNDFA(3)
+	epsilon.Print()
 
 	// letter := regex.LetterExpressionNDFA(5, 'a')
 	// letter.Print()
@@ -73,20 +72,20 @@ func main() {
 	// concatenation.Dot("a.dot")
 
 	//=====================
-	dict := readWord(os.Args[1])
+	// dict := readWord(os.Args[1])
 
-	start_time := time.Now()
+	// start_time := time.Now()
 
-	test := dfa.BuildDFAFromDict(dict)
-	elapsed := time.Since(start_time)
-	//test.Print()
+	// test := dfa.BuildDFAFromDict(dict)
+	// elapsed := time.Since(start_time)
+	// //test.Print()
 
-	dict = readWord(os.Args[1])
-	fmt.Printf("Correct language: %v\nTime: %s\n", test.CheckLanguage(dict), elapsed)
-	//fmt.Printf("Is minimal? %v\n", (i == eq_c))
-	fmt.Printf("Number of states: %d\n", test.GetNumStates())
-	fmt.Printf("Number of eq classes: %d\n", test.GetNumEqClasses())
+	// dict = readWord(os.Args[1])
+	// fmt.Printf("Correct language: %v\nTime: %s\n", test.CheckLanguage(dict), elapsed)
+	// //fmt.Printf("Is minimal? %v\n", (i == eq_c))
+	// fmt.Printf("Number of states: %d\n", test.GetNumStates())
+	// fmt.Printf("Number of eq classes: %d\n", test.GetNumEqClasses())
 
-	test.DotGraph("a.dot")
-	fmt.Printf("Check real minimality: %v\n", test.CheckMinimal())
+	// test.DotGraph("a.dot")
+	// fmt.Printf("Check real minimality: %v\n", test.CheckMinimal())
 }

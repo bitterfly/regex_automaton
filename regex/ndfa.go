@@ -1,8 +1,17 @@
 package regex
 
-import "github.com/bitterfly/pka/automaton"
-
 type NDFA struct {
-	automaton *automaton.FA
-	delta     *MultipleDeltaTransitions
+	initialState int
+	numStates    int
+	finalState   int
+	delta        *MultipleDeltaTransitions
+}
+
+func NewNDFA(initialState, numStates, finalState int, delta *MultipleDeltaTransitions) *NDFA {
+	return &NDFA{
+		initialState: initialState,
+		numStates:    numStates,
+		finalState:   finalState,
+		delta:        delta,
+	}
 }
