@@ -72,9 +72,8 @@ func ConcatenateExpressionsNDFA(first, second *NDFA) *NDFA {
 	return NewNDFA(first.initialState, numStates, second.finalState, delta)
 }
 
-func KleeneExpressionsNDFA(initialState, finalState int, ndfa *NDFA) *NDFA {
+func KleeneExpressionNDFA(initialState, finalState int, ndfa *NDFA) *NDFA {
 	delta := NewMultipleEmptyTransition()
-
 	//
 	//                      ___ε____
 	//                     /________\__
@@ -89,7 +88,7 @@ func KleeneExpressionsNDFA(initialState, finalState int, ndfa *NDFA) *NDFA {
 	delta.addTransition(initialState, 0, ndfa.initialState)
 
 	//new initial to new final
-	delta.addTransition(initialState, 0, ndfa.finalState)
+	delta.addTransition(initialState, 0, finalState)
 
 	//olf final to new final
 	delta.addTransition(ndfa.finalState, 0, finalState)
