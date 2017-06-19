@@ -5,70 +5,105 @@ import (
 	"os"
 )
 
-func EmptyExpressionNDFA(initialState int) *NDFA {
-	transitions := make(map[MultipleTransition]struct{})
-	transitions[*NewMultipleTransition(initialState, 0, initialState+1)] = struct{}{}
-
-	return NewNDFA(initialState, 2, initialState+1, NewMultipleDeltaTransitions(transitions))
-}
-
-func LetterExpressionNDFA(initialState int, letter rune) *NDFA {
-	transitions := make(map[MultipleTransition]struct{})
-	transitions[*NewMultipleTransition(initialState, letter, initialState+1)] = struct{}{}
-
-	return NewNDFA(initialState, 2, initialState+1, NewMultipleDeltaTransitions(transitions))
-}
-
-func UnionExpressionsNDFA(initialState int, first, second *NDFA) *NDFA {
-	numStates := 2 + first.numStates + second.numStates
-	newFinalState := initialState + numStates - 1
-
+func EmptyExpressionNDFA(initialState, finalState int) *NDFA {
 	delta := NewMultipleEmptyTransition()
+	//            ε
+	//    -> o --------> (o)
+	//
+	delta.addTransition(initialState, 0, finalState)
 
+	return NewNDFA(initialState, 2, finalState, delta)
+}
+
+func LetterExpressionNDFA(initialState, finalState int, letter rune) *NDFA {
+	delta := NewMultipleEmptyTransition()
+	//            a
+	//    -> o --------> (o)
+	//
+	delta.addTransition(initialState, letter, finalState)
+
+	return NewNDFA(initialState, 2, finalState, delta)
+}
+
+func UnionExpressionsNDFA(initialState, finalState int, first, second *NDFA) *NDFA {
+	delta := NewMultipleEmptyTransition()
+	//                 ____________
+	//                /            \   ε
+	//           ε,-----> o     o -------- -,
+	//           /    \____________/         \
+	//   ----> o       ____________          (o)
+	//           \    /            \   ε     /
+	//           ε'-----> o     o  ---------'
+	//                \____________/
+
+	// new initial to old initials
 	delta.addTransition(initialState, 0, first.initialState)
 	delta.addTransition(initialState, 0, second.initialState)
 
+	//all previous transitions
 	delta.addTransitions(first.delta)
 	delta.addTransitions(second.delta)
 
-	delta.addTransition(first.finalState, 0, newFinalState)
-	delta.addTransition(second.finalState, 0, newFinalState)
+	// olf final to new final
+	delta.addTransition(first.finalState, 0, finalState)
+	delta.addTransition(second.finalState, 0, finalState)
 
-	return NewNDFA(initialState, numStates, newFinalState, delta)
+	numStates := 2 + first.numStates + second.numStates
+	return NewNDFA(initialState, numStates, finalState, delta)
 }
-
-// func (n *NDFA) MoveToInitial(initialState int) {
-// 	offset := n.automaton.GetInitialState() - initialState
-
-// 	fmt.Printf("Offset: %d", offset)
-// 	n.automaton.MaxState -= offset
-
-// 	newFinalStates := make(map[int]struct{}, len(n.automaton.FinalStates))
-// 	for state, _ := range n.automaton.FinalStates {
-// 		newFinalStates[state-offset] = struct{}{}
-// 	}
-
-// 	n.automaton.FinalStates = newFinalStates
-
-// 	newTransitions := make(map[MultipleTransition]struct{}, len(n.delta.transitions))
-
-// 	for transition, _ := range n.delta.transitions {
-// 		newTransitions[*NewMultipleTransition(transition.initialState-offset, transition.letter, transition.goalState-offset)] = struct{}{}
-// 	}
-// 	n.delta.transitions = newTransitions
-// }
 
 func ConcatenateExpressionsNDFA(first, second *NDFA) *NDFA {
 	delta := NewMultipleEmptyTransition()
+	//       ________________           _______________
+	//      /                \    ε    /               \
+	//   -----> o first   o---|---------> o  second (o)|
+	//		\________________/         \_______________/
+	//
 
+	//first final to second initial
 	delta.addTransition(first.finalState, 0, second.initialState)
 
+	// all previous transitions
 	delta.addTransitions(first.delta)
 	delta.addTransitions(second.delta)
 
 	numStates := first.numStates + second.numStates
 
 	return NewNDFA(first.initialState, numStates, second.finalState, delta)
+}
+
+func KleeneExpressionsNDFA(initialState, finalState int, ndfa *NDFA) *NDFA {
+	delta := NewMultipleEmptyTransition()
+
+	//
+	//                      ___ε____
+	//                     /________\__
+	//			 ε   	 /V          \ \  ε
+	//    ---> o -----> | o   NDFA    o | ----> (o)
+	//          \        \_____________/
+	//           \____________________________/
+	//				           ε
+	//
+
+	// new initial to old initial
+	delta.addTransition(initialState, 0, ndfa.initialState)
+
+	//new initial to new final
+	delta.addTransition(initialState, 0, ndfa.finalState)
+
+	//olf final to new final
+	delta.addTransition(ndfa.finalState, 0, finalState)
+
+	// all old transitions
+	delta.addTransitions(first.delta)
+	delta.addTransitions(second.delta)
+
+	//old final to old initial
+	delta.addTransition(ndfa.finalState, 0, ndfa.initialState)
+
+	numStates := first.numStates + second.numStates
+
+	return NewNDFA(initialState, numStates, finalState, delta)
 }
 
 //=================================================
