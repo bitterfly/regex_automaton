@@ -59,10 +59,11 @@ func main() {
 	epsilon := regex.EmptyExpressionNDFA(3)
 	epsilon.Print()
 
-	// letter := regex.LetterExpressionNDFA(5, 'a')
-	// letter.Print()
+	letter := regex.LetterExpressionNDFA(5, 'a')
+	letter.Print()
 
-	// union := regex.UnionExpressionsNDFA(2, epsilon, letter)
+	union := regex.UnionExpressionsNDFA(2, epsilon, letter)
+	union.Dot("a.dot")
 
 	// epsilon2 := regex.EmptyExpressionNDFA(8)
 	// doubleUnion := regex.UnionExpressionsNDFA(1, epsilon2, union)

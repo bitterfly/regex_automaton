@@ -38,12 +38,6 @@ func (mdt *MultipleDeltaTransitions) removeTransition(initialState int, letter r
 	delete(mdt.transitions, *NewMultipleTransition(initialState, letter, goalState))
 }
 
-func (mdt *MultipleDeltaTransitions) addFinalStates(finalStates map[int]struct{}, newFinalState int) {
-	for state, _ := range finalStates {
-		mdt.addTransition(state, 0, newFinalState)
-	}
-}
-
 func (mdt *MultipleDeltaTransitions) addTransitions(other *MultipleDeltaTransitions) {
 	for k, v := range other.transitions {
 		mdt.transitions[k] = v
