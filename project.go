@@ -56,21 +56,21 @@ func main() {
 
 	//===================================
 
-	epsilon := regex.EmptyExpressionNDFA(3)
+	epsilon := regex.EmptyExpressionNDFA(3, 4)
 	epsilon.Print()
 
-	letter := regex.LetterExpressionNDFA(5, 'a')
-	letter.Print()
+	// letter := regex.LetterExpressionNDFA(5, 'a')
+	// letter.Print()
 
-	union := regex.UnionExpressionsNDFA(2, epsilon, letter)
+	// union := regex.UnionExpressionsNDFA(2, epsilon, letter)
 
-	epsilon2 := regex.EmptyExpressionNDFA(8)
-	doubleUnion := regex.UnionExpressionsNDFA(1, epsilon2, union)
+	// epsilon2 := regex.EmptyExpressionNDFA(8)
+	// doubleUnion := regex.UnionExpressionsNDFA(1, epsilon2, union)
 
-	epsilon3 := regex.EmptyExpressionNDFA(11)
-	concatenation := regex.ConcatenateExpressionsNDFA(doubleUnion, epsilon3)
-	concatenation.Print()
-	concatenation.Dot("a.dot")
+	// epsilon3 := regex.EmptyExpressionNDFA(11)
+	// concatenation := regex.ConcatenateExpressionsNDFA(doubleUnion, epsilon3)
+	// concatenation.Print()
+	// concatenation.Dot("a.dot")
 
 	//=====================
 	// dict := readWord(os.Args[1])

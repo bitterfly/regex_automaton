@@ -95,13 +95,12 @@ func KleeneExpressionsNDFA(initialState, finalState int, ndfa *NDFA) *NDFA {
 	delta.addTransition(ndfa.finalState, 0, finalState)
 
 	// all old transitions
-	delta.addTransitions(first.delta)
-	delta.addTransitions(second.delta)
+	delta.addTransitions(ndfa.delta)
 
 	//old final to old initial
 	delta.addTransition(ndfa.finalState, 0, ndfa.initialState)
 
-	numStates := first.numStates + second.numStates
+	numStates := ndfa.numStates + 2
 
 	return NewNDFA(initialState, numStates, finalState, delta)
 }
