@@ -7,8 +7,9 @@ import (
 	"log"
 	"os"
 	"runtime/pprof"
+	"time"
 
-	"github.com/bitterfly/pka/regex"
+	"github.com/bitterfly/pka/dfa"
 )
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
@@ -54,36 +55,38 @@ func main() {
 		return
 	}
 
-	epsilon := regex.EmptyExpressionNDFA(3)
-	epsilon.Print()
+	//===================================
 
-	letter := regex.LetterExpressionNDFA(5, 'a')
-	letter.Print()
+	// epsilon := regex.EmptyExpressionNDFA(3)
+	// epsilon.Print()
 
-	union := regex.UnionExpressionsNDFA(2, epsilon, letter)
+	// letter := regex.LetterExpressionNDFA(5, 'a')
+	// letter.Print()
 
-	epsilon2 := regex.EmptyExpressionNDFA(8)
-	doubleUnion := regex.UnionExpressionsNDFA(1, epsilon2, union)
+	// union := regex.UnionExpressionsNDFA(2, epsilon, letter)
 
-	concatenation := regex.ConcatenateExpressionsNDFA(doubleUnion, letter)
-	concatenation.Print()
-	concatenation.Dot("a.dot")
+	// epsilon2 := regex.EmptyExpressionNDFA(8)
+	// doubleUnion := regex.UnionExpressionsNDFA(1, epsilon2, union)
+
+	// concatenation := regex.ConcatenateExpressionsNDFA(doubleUnion, letter)
+	// concatenation.Print()
+	// concatenation.Dot("a.dot")
 
 	//=====================
-	// dict := readWord(os.Args[1])
+	dict := readWord(os.Args[1])
 
-	// start_time := time.Now()
+	start_time := time.Now()
 
-	// test := dfa.BuildDFAFromDict(dict)
-	// elapsed := time.Since(start_time)
-	// //test.Print()
+	test := dfa.BuildDFAFromDict(dict)
+	elapsed := time.Since(start_time)
+	//test.Print()
 
-	// dict = readWord(os.Args[1])
-	// fmt.Printf("Correct language: %v\nTime: %s\n", test.CheckLanguage(dict), elapsed)
-	// //fmt.Printf("Is minimal? %v\n", (i == eq_c))
-	// fmt.Printf("Number of states: %d\n", test.GetAutomaton().NumStates)
-	// fmt.Printf("Number of eq classes: %d\n", test.GetAutomaton().NumEqClasses)
+	dict = readWord(os.Args[1])
+	fmt.Printf("Correct language: %v\nTime: %s\n", test.CheckLanguage(dict), elapsed)
+	//fmt.Printf("Is minimal? %v\n", (i == eq_c))
+	fmt.Printf("Number of states: %d\n", test.GetNumStates())
+	fmt.Printf("Number of eq classes: %d\n", test.GetNumEqClasses())
 
-	// test.DotGraph("a.dot")
-	// fmt.Printf("Check real minimality: %v\n", test.CheckMinimal())
+	test.DotGraph("a.dot")
+	fmt.Printf("Check real minimality: %v\n", test.CheckMinimal())
 }

@@ -49,7 +49,7 @@ func (f *FA) GetInitialState() int {
 	return f.MaxState - f.NumStates + 1
 }
 
-func (f *FA) GetFinalState() int {
+func (f *FA) GetNumState() int {
 	for k, _ := range f.FinalStates {
 		return k
 	}
