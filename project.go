@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/bitterfly/pka/dfa"
+	"github.com/bitterfly/pka/regex"
 )
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
@@ -63,15 +64,15 @@ func main() {
 	// ndfa.Print()
 	// ndfa.Dot("a.dot")
 
-	// epsilon := regex.EmptyExpressionNDFA(3, 4)
-	// epsilon.Print()
+	epsilon := regex.EmptyExpressionNDFA(3, 4)
+	epsilon.Print()
 
-	// letter := regex.LetterExpressionNDFA(5, 6, 'a')
-	// letter.Print()
+	letter := regex.LetterExpressionNDFA(5, 6, 'a')
+	letter.Print()
 
-	// kleene := regex.KleeneExpressionNDFA(4, 7, letter)
-	// kleene.Print()
-	// kleene.Dot("a.dot")
+	kleene := regex.KleeneExpressionNDFA(4, 7, letter)
+	kleene.Print()
+	kleene.Dot("a.dot")
 
 	// union := regex.UnionExpressionsNDFA(2, epsilon, letter)
 
