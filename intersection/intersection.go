@@ -20,8 +20,8 @@ func NewIntersector(ndfa *regex.NDFA, dfa *dfa.DFA) *Intersector {
 func (i *Intersector) Intersect() chan string {
 	matched := make(chan string)
 	go func() {
-		wordSoFar = make([]rune, 0)
-		i.intersect(map[int]struct{}{i.ndfa.GetInitialState(): struct{}{}}, 1, wordSoFar, matched)
+		wordSoFar := make([]rune, 0)
+		i.intersect(map[int]struct{}{i.ndfa.GetInitialState(): struct{}{}}, 1, &wordSoFar, matched)
 		close(matched)
 	}()
 	return matched
@@ -31,17 +31,18 @@ func (i *Intersector) intersect(ndfaStates map[int]struct{}, dfaState int, wordS
 	ndfaStates, isFinal := i.ndfa.EpsilonClosure(ndfaStates)
 
 	if isFinal && i.dfa.IsFinal(dfaState) {
-		matched <- String(wordSoFar)
+		matched <- string(*wordSoFar)
 	}
 
 	ndfaTransitions := i.ndfa.GetNonEpsilonTransitions(ndfaStates)
 	for _, transitions := range i.dfa.GetTransitions(dfaState) {
 		ndfaDestinations, ok := ndfaTransitions[transitions.GetLetter()]
 		if ok {
-			wordSoFar = append(wordSoFar, transitions.GetLetter())
+			*wordSoFar = append(*wordSoFar, transitions.GetLetter())
 			i.intersect(ndfaDestinations, transitions.GetState(), wordSoFar, matched)
 		}
 	}
-
-	wordSoFar = wordSoFar[0 : len(wordSoFar)-1]
+	if len(*wordSoFar) > 0 {
+		*wordSoFar = (*wordSoFar)[0 : len(*wordSoFar)-1]
+	}
 }
