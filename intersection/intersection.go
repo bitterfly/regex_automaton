@@ -19,7 +19,11 @@ func NewIntersector(ndfa *regex.NDFA, dfa *dfa.DFA) *Intersector {
 	}
 }
 
-func (i Intersector) Intersect(ndfaStates map[int]struct{}, dfaState int, wordSoFar string) {
+func (i *Intersector) Intersect() {
+	i.intersect(map[int]struct{}{i.ndfa.GetInitialState(): struct{}{}}, 1, "")
+}
+
+func (i *Intersector) intersect(ndfaStates map[int]struct{}, dfaState int, wordSoFar string) {
 	ndfaStates, isFinal := i.ndfa.EpsilonClosure(ndfaStates)
 
 	if isFinal && i.dfa.IsFinal(dfaState) {
@@ -30,7 +34,7 @@ func (i Intersector) Intersect(ndfaStates map[int]struct{}, dfaState int, wordSo
 	for _, transitions := range i.dfa.GetTransitions(dfaState) {
 		ndfaDestinations, ok := ndfaTransitions[transitions.GetLetter()]
 		if ok {
-			i.Intersect(ndfaDestinations, transitions.GetState(), wordSoFar+string(transitions.GetLetter()))
+			i.intersect(ndfaDestinations, transitions.GetState(), wordSoFar+string(transitions.GetLetter()))
 		}
 	}
 }

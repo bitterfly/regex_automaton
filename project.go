@@ -111,5 +111,5 @@ func main() {
 
 	//==================================
 	intersector := intersection.NewIntersector(ndfa, dfa)
-	intersector.Intersect(map[int]struct{}{ndfa.GetInitialState(): struct{}{}}, 1, "")
+	intersector.Intersect()
 }
