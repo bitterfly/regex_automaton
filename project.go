@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -14,7 +13,7 @@ import (
 	"github.com/bitterfly/pka/regex"
 )
 
-var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+//var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
 func readWord(fileName string) chan string {
 	dict := make(chan string, 1000)
@@ -43,15 +42,12 @@ func readWord(fileName string) chan string {
 
 func main() {
 	//======== PROFILER ===============
-	flag.Parse()
-	if *cpuprofile != "" {
-		f, err := os.Create(*cpuprofile)
-		if err != nil {
-			log.Fatal(err)
-		}
-		pprof.StartCPUProfile(f)
-		defer pprof.StopCPUProfile()
+	f, err := os.Create("pka.prof")
+	if err != nil {
+		log.Fatal(err)
 	}
+	pprof.StartCPUProfile(f)
+	defer pprof.StopCPUProfile()
 
 	if len(os.Args) != 2 {
 		fmt.Printf("usage: pka filename\n")
@@ -67,7 +63,7 @@ func main() {
 	dict := readWord(os.Args[1])
 
 	startTime = time.Now()
-	fmt.Printf("Building dictionary atuomaton.\n")
+	fmt.Printf("Building dictionary automaton.\n")
 
 	dfa := dfa.BuildDFAFromDict(dict)
 	elapsed = time.Since(startTime)
