@@ -60,10 +60,11 @@ func main() {
 	//===================================
 
 	parser := regex.NewRegexParser()
-	fmt.Printf("(b.a).(a|b|t|d|n)*\n")
-	ndfa := parser.Parse("abtdn||||*ab..")
-	// fmt.Printf("(b.a).(c|d)*\n")
-	// ndfa := parser.Parse("cd|*ab..")
+	fmt.Printf("Regular expression: c.o.l.o.(u|?).r\n")
+	start_time := time.Now()
+	ndfa := parser.Parse("ru?|oloc.....")
+	elapsed := time.Since(start_time)
+	fmt.Printf("Time: %s\n\n", elapsed)
 	ndfa.Dot("ndfa.dot")
 	// ndfa.Print()
 	// ec, f := ndfa.EpsilonClosure(map[int]struct{}{5: struct{}{}})
@@ -94,15 +95,15 @@ func main() {
 
 	dict := readWord(os.Args[1])
 
-	start_time := time.Now()
+	start_time = time.Now()
 
 	dfa := dfa.BuildDFAFromDict(dict)
-	elapsed := time.Since(start_time)
+	elapsed = time.Since(start_time)
 	dfa.DotGraph("dfa.dot")
 	//dfa.Print()
 
 	// dict = readWord(os.Args[1])
-	fmt.Printf("Correct language: %v\nTime: %s\n", dfa.CheckLanguage(dict), elapsed)
+	fmt.Printf("Correct language: %v\nTime: %s\n\n", dfa.CheckLanguage(dict), elapsed)
 	// //fmt.Printf("Is minimal? %v\n", (i == eq_c))
 	// fmt.Printf("Number of states: %d\n", dfa.GetNumStates())
 	// fmt.Printf("Number of eq classes: %d\n", dfa.GetNumEqClasses())
@@ -111,5 +112,13 @@ func main() {
 
 	//==================================
 	intersector := intersection.NewIntersector(ndfa, dfa)
-	intersector.Intersect()
+	start_time = time.Now()
+	matched := intersector.Intersect()
+	elapsed = time.Since(start_time)
+	fmt.Printf("Mathcing words: \n")
+
+	for word := range matched {
+		fmt.Printf("%s\n", word)
+	}
+	fmt.Printf("\nTime: %s\n", elapsed)
 }
