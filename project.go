@@ -67,12 +67,15 @@ func main() {
 	dict := readWord(os.Args[1])
 
 	startTime = time.Now()
+	fmt.Printf("Building dictionary atuomaton.\n")
+
 	dfa := dfa.BuildDFAFromDict(dict)
 	elapsed = time.Since(startTime)
+	fmt.Printf("Time: %s\n", elapsed)
 	dfa.DotGraph("dfa.dot")
 
 	dict = readWord(os.Args[1])
-	fmt.Printf("Correct language: %v\nTime: %s\n", dfa.CheckLanguage(dict), elapsed)
+	fmt.Printf("Correct language: %v\n", dfa.CheckLanguage(dict))
 	fmt.Printf("Number of states: %d\n", dfa.GetNumStates())
 	fmt.Printf("Number of eq classes: %d\n", dfa.GetNumEqClasses())
 	fmt.Printf("=====================\n")
@@ -86,9 +89,6 @@ func main() {
 
 		startTime = time.Now()
 		parser := regex.NewRegexParser()
-		// if "ru?|oloc....." != expression {
-		// 	panic("I cant copy")
-		// }
 
 		fmt.Printf("\nBuilding Regex Automaton...\n")
 		ndfa := parser.Parse(expression)
@@ -99,12 +99,12 @@ func main() {
 
 		intersector := intersection.NewIntersector(ndfa, dfa)
 		startTime = time.Now()
-		fmt.Printf("\nRunnign intersection...\n")
+		fmt.Printf("\nRunning intersection...\n")
 		matched := intersector.Intersect()
 		elapsed = time.Since(startTime)
 		fmt.Printf("Time: %s\n\n", elapsed)
 
-		fmt.Printf("Mathcing words: \n")
+		fmt.Printf("Matching words: \n")
 		for word := range matched {
 			fmt.Printf("%s\n", word)
 		}
