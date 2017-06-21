@@ -84,13 +84,11 @@ func main() {
 	for scanner.Scan() {
 		expression := scanner.Text()
 
-		//fmt.Printf("Regular expression: c.o.l.o.(u|?).r\n")
-
 		startTime = time.Now()
 		parser := regex.NewRegexParser()
-		if "ru?|oloc....." != expression {
-			panic("I cant copy")
-		}
+		// if "ru?|oloc....." != expression {
+		// 	panic("I cant copy")
+		// }
 
 		fmt.Printf("\nBuilding Regex Automaton...\n")
 		ndfa := parser.Parse(expression)
