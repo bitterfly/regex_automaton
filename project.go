@@ -42,6 +42,7 @@ func readWord(fileName string) chan string {
 }
 
 func main() {
+	//======== PROFILER ===============
 	flag.Parse()
 	if *cpuprofile != "" {
 		f, err := os.Create(*cpuprofile)
@@ -57,68 +58,59 @@ func main() {
 		return
 	}
 
-	//===================================
+	//=========== END =================
 
-	parser := regex.NewRegexParser()
-	fmt.Printf("Regular expression: c.o.l.o.(u|?).r\n")
-	start_time := time.Now()
-	ndfa := parser.Parse("ru?|oloc.....")
-	elapsed := time.Since(start_time)
-	fmt.Printf("Time: %s\n\n", elapsed)
-	ndfa.Dot("ndfa.dot")
-	// ndfa.Print()
-	// ec, f := ndfa.EpsilonClosure(map[int]struct{}{5: struct{}{}})
-	// fmt.Printf("Find epsilon closure for: %d - %v\n", ndfa.GetInitialState(), ec)
-	// fmt.Printf("Does it contain final state? %v\n", f)
-
-	// epsilon := regex.EmptyExpressionNDFA(3, 4)
-	// epsilon.Print()
-
-	// letter := regex.LetterExpressionNDFA(5, 6, 'a')
-	// letter.Print()
-
-	// kleene := regex.KleeneExpressionNDFA(4, 7, letter)
-	// kleene.Print()
-	// kleene.Dot("a.dot")
-
-	// union := regex.UnionExpressionsNDFA(2, epsilon, letter)
-
-	// epsilon2 := regex.EmptyExpressionNDFA(8)
-	// doubleUnion := regex.UnionExpressionsNDFA(1, epsilon2, union)
-
-	// epsilon3 := regex.EmptyExpressionNDFA(11)
-	// concatenation := regex.ConcatenateExpressionsNDFA(doubleUnion, epsilon3)
-	// concatenation.Print()
-	// concatenation.Dot("a.dot")
-
-	//=====================
+	//========= GET DICTIONARY ========
+	var startTime time.Time
+	var elapsed time.Duration
 
 	dict := readWord(os.Args[1])
 
-	start_time = time.Now()
-
+	startTime = time.Now()
 	dfa := dfa.BuildDFAFromDict(dict)
-	elapsed = time.Since(start_time)
+	elapsed = time.Since(startTime)
 	dfa.DotGraph("dfa.dot")
-	//dfa.Print()
 
-	// dict = readWord(os.Args[1])
-	fmt.Printf("Correct language: %v\nTime: %s\n\n", dfa.CheckLanguage(dict), elapsed)
-	// //fmt.Printf("Is minimal? %v\n", (i == eq_c))
-	// fmt.Printf("Number of states: %d\n", dfa.GetNumStates())
-	// fmt.Printf("Number of eq classes: %d\n", dfa.GetNumEqClasses())
+	dict = readWord(os.Args[1])
+	fmt.Printf("Correct language: %v\nTime: %s\n", dfa.CheckLanguage(dict), elapsed)
+	fmt.Printf("Number of states: %d\n", dfa.GetNumStates())
+	fmt.Printf("Number of eq classes: %d\n", dfa.GetNumEqClasses())
+	fmt.Printf("=====================\n")
+	//============= END ================
 
-	// fmt.Printf("Check real minimality: %v\n", dfa.CheckMinimal())
+	//============ READ REGEX ==========
+	scanner := bufio.NewScanner(os.Stdin)
+	fmt.Printf("Enter regular expression: \n")
+	for scanner.Scan() {
+		expression := scanner.Text()
 
-	//==================================
-	intersector := intersection.NewIntersector(ndfa, dfa)
-	start_time = time.Now()
-	matched := intersector.Intersect()
-	elapsed = time.Since(start_time)
-	fmt.Printf("Mathcing words: \n")
+		//fmt.Printf("Regular expression: c.o.l.o.(u|?).r\n")
 
-	for word := range matched {
-		fmt.Printf("%s\n", word)
+		startTime = time.Now()
+		parser := regex.NewRegexParser()
+		if "ru?|oloc....." != expression {
+			panic("I cant copy")
+		}
+
+		fmt.Printf("\nBuilding Regex Automaton...\n")
+		ndfa := parser.Parse(expression)
+		elapsed = time.Since(startTime)
+		fmt.Printf("Time: %s\n\n", elapsed)
+		ndfa.Dot("ndfa.dot")
+		//============= END ================
+
+		intersector := intersection.NewIntersector(ndfa, dfa)
+		startTime = time.Now()
+		fmt.Printf("\nRunnign intersection...\n")
+		matched := intersector.Intersect()
+		elapsed = time.Since(startTime)
+		fmt.Printf("Time: %s\n\n", elapsed)
+
+		fmt.Printf("Mathcing words: \n")
+		for word := range matched {
+			fmt.Printf("%s\n", word)
+		}
+		fmt.Printf("=====================\n")
+		fmt.Printf("Enter regular expression: \n")
 	}
-	fmt.Printf("\nTime: %s\n", elapsed)
 }
