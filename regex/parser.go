@@ -24,8 +24,8 @@ func (p *RegexParser) Parse(regex string) *NDFA {
 			// fmt.Println("Union\n")
 			// fmt.Printf("Pop 2 from stack")
 
-			first := p.regexStack.Pop()
 			second := p.regexStack.Pop()
+			first := p.regexStack.Pop()
 
 			initialState := p.NewState()
 			finalState := p.NewState()
@@ -39,8 +39,8 @@ func (p *RegexParser) Parse(regex string) *NDFA {
 			// fmt.Println("Concatenate\n")
 			// fmt.Printf("Pop 2 from stack\n")
 
-			first := p.regexStack.Pop()
 			second := p.regexStack.Pop()
+			first := p.regexStack.Pop()
 
 			// fmt.Printf("Pushing into stack\n")
 			concatenation := ConcatenateExpressionsNDFA(first, second)
