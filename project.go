@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"github.com/bitterfly/pka/dfa"
 	"github.com/bitterfly/pka/intersection"
 	"github.com/bitterfly/pka/regex"
+	"github.com/bitterfly/pka/rpn"
 )
 
 //var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
@@ -49,18 +51,27 @@ func main() {
 	pprof.StartCPUProfile(f)
 	defer pprof.StopCPUProfile()
 
-	if len(os.Args) != 2 {
-		fmt.Printf("usage: pka filename\n")
+	//=========== END =================
+	//=========== Read Arguments=======
+
+	if len(os.Args) < 2 || len(os.Args) > 3 {
+		fmt.Printf("usage: pka [OPTIONS] filename, %d\n", len(os.Args))
 		return
 	}
 
-	//=========== END =================
+	infix := flag.Bool("infix", false, "If infix is true convert expression to rpn first.")
+	flag.Parse()
+
+	var dict chan string
+	if *infix {
+		dict = readWord(os.Args[2])
+	} else {
+		dict = readWord(os.Args[1])
+	}
 
 	//========= GET DICTIONARY ========
 	var startTime time.Time
 	var elapsed time.Duration
-
-	dict := readWord(os.Args[1])
 
 	startTime = time.Now()
 	fmt.Printf("Building dictionary automaton.\n")
@@ -70,7 +81,11 @@ func main() {
 	fmt.Printf("Time: %s\n", elapsed)
 	dfa.DotGraph("dfa.dot")
 
-	dict = readWord(os.Args[1])
+	if *infix {
+		dict = readWord(os.Args[2])
+	} else {
+		dict = readWord(os.Args[1])
+	}
 	fmt.Printf("Correct language: %v\n", dfa.CheckLanguage(dict))
 	fmt.Printf("Number of states: %d\n", dfa.GetNumStates())
 	fmt.Printf("Number of eq classes: %d\n", dfa.GetNumEqClasses())
@@ -82,6 +97,10 @@ func main() {
 	fmt.Printf("Enter regular expression: \n")
 	for scanner.Scan() {
 		expression := scanner.Text()
+		if *infix {
+			fmt.Printf("Converting to rpn...\n")
+			expression = rpn.ConvertToRpn(expression)
+		}
 
 		startTime = time.Now()
 		parser := regex.NewRegexParser()
