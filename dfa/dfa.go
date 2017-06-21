@@ -114,6 +114,14 @@ func (d *DFA) removeState(state int) {
 	d.numStates -= 1
 }
 
+func (d *DFA) GetTransitions(state int) []common.Transition {
+	return d.delta.stateToTransitions[state]
+}
+
+func (d *DFA) IsFinal(state int) bool {
+	return d.isFinal(state)
+}
+
 //===========================Human Friendly======================================
 func (d *DFA) CountStates() {
 	states := make(map[int]struct{})

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/bitterfly/pka/dfa"
+	"github.com/bitterfly/pka/intersection"
 	"github.com/bitterfly/pka/regex"
 )
 
@@ -58,21 +59,26 @@ func main() {
 
 	//===================================
 
-	// parser := regex.NewRegexParser()
-	// fmt.Printf("((a.b)|(c)*)\n")
-	// ndfa := parser.Parse("ba.c*|")
+	parser := regex.NewRegexParser()
+	fmt.Printf("(b.a).(a|b|t|d|n)*\n")
+	ndfa := parser.Parse("abtdn||||*ab..")
+	// fmt.Printf("(b.a).(c|d)*\n")
+	// ndfa := parser.Parse("cd|*ab..")
+	ndfa.Dot("ndfa.dot")
 	// ndfa.Print()
-	// ndfa.Dot("a.dot")
+	// ec, f := ndfa.EpsilonClosure(map[int]struct{}{5: struct{}{}})
+	// fmt.Printf("Find epsilon closure for: %d - %v\n", ndfa.GetInitialState(), ec)
+	// fmt.Printf("Does it contain final state? %v\n", f)
 
-	epsilon := regex.EmptyExpressionNDFA(3, 4)
-	epsilon.Print()
+	// epsilon := regex.EmptyExpressionNDFA(3, 4)
+	// epsilon.Print()
 
-	letter := regex.LetterExpressionNDFA(5, 6, 'a')
-	letter.Print()
+	// letter := regex.LetterExpressionNDFA(5, 6, 'a')
+	// letter.Print()
 
-	kleene := regex.KleeneExpressionNDFA(4, 7, letter)
-	kleene.Print()
-	kleene.Dot("a.dot")
+	// kleene := regex.KleeneExpressionNDFA(4, 7, letter)
+	// kleene.Print()
+	// kleene.Dot("a.dot")
 
 	// union := regex.UnionExpressionsNDFA(2, epsilon, letter)
 
@@ -85,20 +91,25 @@ func main() {
 	// concatenation.Dot("a.dot")
 
 	//=====================
+
 	dict := readWord(os.Args[1])
 
 	start_time := time.Now()
 
-	test := dfa.BuildDFAFromDict(dict)
+	dfa := dfa.BuildDFAFromDict(dict)
 	elapsed := time.Since(start_time)
-	//test.Print()
+	dfa.DotGraph("dfa.dot")
+	//dfa.Print()
 
-	dict = readWord(os.Args[1])
-	fmt.Printf("Correct language: %v\nTime: %s\n", test.CheckLanguage(dict), elapsed)
-	//fmt.Printf("Is minimal? %v\n", (i == eq_c))
-	fmt.Printf("Number of states: %d\n", test.GetNumStates())
-	fmt.Printf("Number of eq classes: %d\n", test.GetNumEqClasses())
+	// dict = readWord(os.Args[1])
+	fmt.Printf("Correct language: %v\nTime: %s\n", dfa.CheckLanguage(dict), elapsed)
+	// //fmt.Printf("Is minimal? %v\n", (i == eq_c))
+	// fmt.Printf("Number of states: %d\n", dfa.GetNumStates())
+	// fmt.Printf("Number of eq classes: %d\n", dfa.GetNumEqClasses())
 
-	test.DotGraph("a.dot")
-	fmt.Printf("Check real minimality: %v\n", test.CheckMinimal())
+	// fmt.Printf("Check real minimality: %v\n", dfa.CheckMinimal())
+
+	//==================================
+	intersector := intersection.NewIntersector(ndfa, dfa)
+	intersector.Intersect(map[int]struct{}{ndfa.GetInitialState(): struct{}{}}, 1, "")
 }

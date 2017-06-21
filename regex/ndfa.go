@@ -21,7 +21,58 @@ func NewNDFA(initialState, numStates, finalState int, delta *MultipleDeltaTransi
 	}
 }
 
+func (n *NDFA) EpsilonClosure(states map[int]struct{}) (map[int]struct{}, bool) {
+	epsilonClosure := make(map[int]struct{})
+	stack := make([]int, len(states))
+
+	i := 0
+	for state, _ := range states {
+		epsilonClosure[state] = struct{}{}
+		stack[i] = state
+		i += 1
+	}
+
+	for len(stack) != 0 {
+		state := stack[len(stack)-1]
+		stack = stack[0 : len(stack)-1]
+		for _, destinations := range n.delta.transitions[state] {
+			if destinations.GetLetter() == 0 {
+				_, ok := epsilonClosure[destinations.GetState()]
+				if !ok {
+					epsilonClosure[destinations.GetState()] = struct{}{}
+					stack = append(stack, destinations.GetState())
+				}
+			}
+		}
+	}
+
+	_, ok := epsilonClosure[n.finalState]
+	return epsilonClosure, ok
+}
+
+func (n *NDFA) GetNonEpsilonTransitions(states map[int]struct{}) map[rune]map[int]struct{} {
+	transitions := make(map[rune]map[int]struct{})
+
+	for state, _ := range states {
+		for _, tr := range n.delta.transitions[state] {
+			if tr.GetLetter() != 0 {
+				_, ok := transitions[tr.GetLetter()]
+				if !ok {
+					transitions[tr.GetLetter()] = make(map[int]struct{})
+				}
+				transitions[tr.GetLetter()][tr.GetState()] = struct{}{}
+			}
+		}
+	}
+
+	return transitions
+}
+
 //=================================================
+
+func (n *NDFA) GetInitialState() int {
+	return n.initialState
+}
 
 func (n *NDFA) Print() {
 	fmt.Printf("====NDFA====\n")
@@ -40,17 +91,15 @@ func (n *NDFA) PrintFunction() {
 		}
 	}
 
-	fmt.Printf("(p, a) ->  []\n\n")
-	for tr, v := range n.delta.transitions {
-		if tr.GetLetter() == 0 {
-			fmt.Printf("(%d, ε) -> ", tr.GetState())
-		} else {
-			fmt.Printf("(%d, %c) -> ", tr.GetState(), tr.GetLetter())
-		}
-
-		fmt.Printf("[")
-		for _, s := range v {
-			fmt.Printf("%d, ", s)
+	fmt.Printf("p ->  []\n\n")
+	for s, tr := range n.delta.transitions {
+		fmt.Printf(" %d -> [", s)
+		for _, t := range tr {
+			if t.GetLetter() == 0 {
+				fmt.Printf("(%d, ε), ", t.GetState())
+			} else {
+				fmt.Printf("(%d, %c), ", t.GetState(), t.GetLetter())
+			}
 		}
 		fmt.Printf("]\n\n")
 	}
@@ -71,5 +120,4 @@ func (n *NDFA) Dot(filename string) {
 	}
 	fmt.Fprintf(f, "%d [style=filled,color=\"0.2 0.9 0.85\"];\n", n.finalState)
 	fmt.Fprintf(f, "}\n")
-
 }
