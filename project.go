@@ -59,10 +59,6 @@ func main() {
 	flag.StringVar(&outputFile, "output", "", "puke words here inseat of stdin")
 	flag.Parse()
 
-	fmt.Println("infixPtr: ", *infixPtr)
-	fmt.Println("Output: ", outputFile)
-	fmt.Println("tail:", flag.Args())
-
 	if len(flag.Args()) == 0 {
 		fmt.Printf("usage: pka [OPTIONS] filename, %d\n", len(os.Args))
 		os.Exit(1)
