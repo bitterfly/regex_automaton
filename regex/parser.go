@@ -67,7 +67,7 @@ func (p *RegexParser) Parse(regex string) *ENDFA {
 			initialState := p.NewState()
 			finalState := p.NewState()
 
-			eps := EmptyExpressionENDFA(initialState, finalState)
+			eps := LetterExpressionENDFA(initialState, finalState, 0)
 			//eps.Print()
 			p.regexStack.Push(eps)
 

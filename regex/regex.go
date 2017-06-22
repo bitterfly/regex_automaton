@@ -1,16 +1,8 @@
 package regex
 
-func EmptyExpressionENDFA(initialState, finalState int) *ENDFA {
-	delta := NewMultipleEmptyTransition()
-	//            ε
-	//    -> o --------> (o)
-	//
-	delta.addTransition(initialState, 0, finalState)
-
-	return NewENDFA(initialState, 2, finalState, delta)
-}
-
 func LetterExpressionENDFA(initialState, finalState int, letter rune) *ENDFA {
+	//if letter == 0, then it's ε
+
 	delta := NewMultipleEmptyTransition()
 	//            a
 	//    -> o --------> (o)
