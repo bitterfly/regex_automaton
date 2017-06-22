@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"runtime/pprof"
 	"time"
 
 	"github.com/bitterfly/pka/dfa"
@@ -14,8 +13,6 @@ import (
 	"github.com/bitterfly/pka/regex"
 	"github.com/bitterfly/pka/rpn"
 )
-
-//var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
 func readWord(fileName string) chan string {
 	dict := make(chan string, 1000)
@@ -44,17 +41,18 @@ func readWord(fileName string) chan string {
 
 func main() {
 	//======== PROFILER ===============
-	f, err := os.Create("pka.prof")
-	if err != nil {
-		log.Fatal(err)
-	}
-	pprof.StartCPUProfile(f)
-	defer pprof.StopCPUProfile()
+	// f, err := os.Create("pka.prof")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// pprof.StartCPUProfile(f)
+	// defer pprof.StopCPUProfile()
 
 	//=========== END =================
 	//=========== Read Arguments=======
 
 	infixPtr := flag.Bool("infix", false, "If infix is true convert expression to rpn first.")
+	dotPtr := flag.Bool("dot", false, "If dot is true make dot file for svg automaton.")
 	var outputFile string
 	flag.StringVar(&outputFile, "output", "", "puke words here inseat of stdin")
 	flag.Parse()
@@ -76,7 +74,9 @@ func main() {
 	dfa := dfa.BuildDFAFromDict(dict)
 	elapsed = time.Since(startTime)
 	fmt.Printf("Time: %s\n", elapsed)
-	dfa.DotGraph("dfa.dot")
+	if *dotPtr {
+		dfa.DotGraph("dfa.dot")
+	}
 
 	dict = readWord(flag.Args()[0])
 
@@ -100,8 +100,6 @@ func main() {
 		fmt.Printf("\nBuilding Regex Automaton...\n")
 		startTime = time.Now()
 		endfa := parser.Parse(expression)
-		// ndfa := endfa.RemoveEpsilonTransitions()
-		// ndfa.Dot("eps.dot")
 
 		elapsed = time.Since(startTime)
 		fmt.Printf("Time: %s\n\n", elapsed)
@@ -112,9 +110,10 @@ func main() {
 		elapsed = time.Since(startTime)
 		fmt.Printf("Time: %s\n\n", elapsed)
 
-		ndfa.Dot("eps.dot")
-
-		endfa.Dot("endfa.dot")
+		if *dotPtr {
+			ndfa.Dot("ndfa.dot")
+			endfa.Dot("endfa.dot")
+		}
 		//============= END ================
 
 		intersector := intersection.NewIntersector(ndfa, dfa)
