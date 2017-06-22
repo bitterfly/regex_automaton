@@ -100,16 +100,21 @@ func main() {
 			expression = rpn.ConvertToRpn(expression)
 		}
 
-		startTime = time.Now()
 		parser := regex.NewRegexParser()
-
 		fmt.Printf("\nBuilding Regex Automaton...\n")
+		startTime = time.Now()
 		ndfa := parser.Parse(expression)
-		epsilonless := ndfa.RemoveEpsilonTransitions()
-		epsilonless.Dot("eps.dot")
-
 		elapsed = time.Since(startTime)
 		fmt.Printf("Time: %s\n\n", elapsed)
+
+		fmt.Printf("\nRemoving epsilon transitions...\n")
+		startTime = time.Now()
+		epsilonless := ndfa.RemoveEpsilonTransitions()
+		elapsed = time.Since(startTime)
+		fmt.Printf("Time: %s\n\n", elapsed)
+
+		epsilonless.Dot("eps.dot")
+
 		ndfa.Dot("ndfa.dot")
 		//============= END ================
 
