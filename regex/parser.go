@@ -21,64 +21,36 @@ func (p *RegexParser) Parse(regex string) *ENDFA {
 	for _, symbol := range regex {
 		switch symbol {
 		case '|':
-			// fmt.Println("Union\n")
-			// fmt.Printf("Pop 2 from stack")
-
 			second := p.regexStack.Pop()
 			first := p.regexStack.Pop()
 
 			initialState := p.NewState()
 			finalState := p.NewState()
 
-			union := UnionExpressionsENDFA(initialState, finalState, first, second)
-			//union.Print()
-
-			// fmt.Printf("Pushing into stack\n")
-			p.regexStack.Push(union)
+			p.regexStack.Push(UnionExpressionsENDFA(initialState, finalState, first, second))
 		case '.':
-			// fmt.Println("Concatenate\n")
-			// fmt.Printf("Pop 2 from stack\n")
-
 			second := p.regexStack.Pop()
 			first := p.regexStack.Pop()
 
-			// fmt.Printf("Pushing into stack\n")
-			concatenation := ConcatenateExpressionsENDFA(first, second)
-			//concatenation.Print()
-
-			p.regexStack.Push(concatenation)
+			p.regexStack.Push(ConcatenateExpressionsENDFA(first, second))
 		case '*':
-			// fmt.Println("Kleene\n")
-			// fmt.Printf("Pop 1 from stack\n")
-
 			initialState := p.NewState()
 			finalState := p.NewState()
 
 			last := p.regexStack.Pop()
-			kleene := KleeneExpressionENDFA(initialState, finalState, last)
-			//kleene.Print()
 
-			// fmt.Printf("Pushing into stack\n")
-			p.regexStack.Push(kleene)
+			p.regexStack.Push(KleeneExpressionENDFA(initialState, finalState, last))
 		case '?':
-			// fmt.Println("Epsilon\n")
-			// fmt.Printf("Pushing into stack\n")
-
 			initialState := p.NewState()
 			finalState := p.NewState()
 
-			eps := LetterExpressionENDFA(initialState, finalState, 0)
-			//eps.Print()
-			p.regexStack.Push(eps)
+			p.regexStack.Push(LetterExpressionENDFA(initialState, finalState, 0))
 
 		default:
 			initialState := p.NewState()
 			finalState := p.NewState()
 
-			// fmt.Printf("Pushing into stack %c\n", symbol)
-			letter := LetterExpressionENDFA(initialState, finalState, symbol)
-			//letter.Print()
-			p.regexStack.Push(letter)
+			p.regexStack.Push(LetterExpressionENDFA(initialState, finalState, symbol))
 		}
 	}
 
