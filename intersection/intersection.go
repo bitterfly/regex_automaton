@@ -6,11 +6,11 @@ import (
 )
 
 type Intersector struct {
-	ndfa *regex.NDFA
+	ndfa *regex.NormalNDFA
 	dfa  *dfa.DFA
 }
 
-func NewIntersector(ndfa *regex.NDFA, dfa *dfa.DFA) *Intersector {
+func NewIntersector(ndfa *regex.NormalNDFA, dfa *dfa.DFA) *Intersector {
 	return &Intersector{
 		ndfa: ndfa,
 		dfa:  dfa,

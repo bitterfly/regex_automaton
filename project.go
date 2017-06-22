@@ -107,22 +107,29 @@ func main() {
 
 		fmt.Printf("\nBuilding Regex Automaton...\n")
 		ndfa := parser.Parse(expression)
+		epsilonless := ndfa.RemoveEpsilonTransitions()
+		epsilonless.Dot("eps.dot")
+
 		elapsed = time.Since(startTime)
 		fmt.Printf("Time: %s\n\n", elapsed)
 		ndfa.Dot("ndfa.dot")
 		//============= END ================
 
+		//intersector := intersection.NewIntersector(epsilonless, dfa)
 		intersector := intersection.NewIntersector(ndfa, dfa)
 		startTime = time.Now()
 		fmt.Printf("\nRunning intersection...\n")
 		matched := intersector.Intersect()
-		elapsed = time.Since(startTime)
-		fmt.Printf("Time: %s\n\n", elapsed)
 
 		fmt.Printf("Matching words: \n")
+		number := 0
 		for word := range matched {
 			fmt.Printf("%s\n", word)
+			number += 1
 		}
+		elapsed = time.Since(startTime)
+		fmt.Printf("Found words: %d\n", number)
+		fmt.Printf("Time: %s\n\n", elapsed)
 		fmt.Printf("=====================\n")
 		fmt.Printf("Enter regular expression: \n")
 	}

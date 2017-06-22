@@ -50,6 +50,50 @@ func (n *NDFA) EpsilonClosure(states map[int]struct{}) (map[int]struct{}, bool) 
 	return epsilonClosure, ok
 }
 
+func (n *NDFA) RemoveEpsilonTransitions() *NDFA {
+	delta := NewMultipleEmptyTransition()
+	//finalStates := make(map[int]struct{})
+	states := make(map[int]struct{})
+	final := -1
+
+	stack := make([]int, 1)
+	stack[0] = n.initialState
+	states[n.initialState] = struct{}{}
+
+	for len(stack) != 0 {
+		state := stack[len(stack)-1]
+		stack = stack[0 : len(stack)-1]
+		enclosure, isFinal := n.EpsilonClosure(map[int]struct{}{state: struct{}{}})
+		if isFinal {
+			// 	if final != -1 && final != state {
+			// 		fmt.Printf("Final is now: %d\n", final)
+			// 		fmt.Printf("state is: %d\n", state)
+			// 		n.Dot("ndfa.dot")
+			// 		panic("More than one final")
+			// 	}
+			final = state
+		}
+
+		for otherState, _ := range enclosure {
+			destinations, _ := n.delta.transitions[otherState]
+			for _, destination := range destinations {
+				if destination.GetLetter() != 0 {
+					delta.addTransition(state, destination.GetLetter(), destination.GetState())
+					_, ok := states[destination.GetState()]
+					if !ok {
+
+						stack = append(stack, destination.GetState())
+						states[destination.GetState()] = struct{}{}
+					}
+				}
+			}
+		}
+
+	}
+
+	return NewNDFA(n.initialState, len(states), final, delta)
+}
+
 func (n *NDFA) GetNonEpsilonTransitions(states map[int]struct{}) map[rune]map[int]struct{} {
 	transitions := make(map[rune]map[int]struct{})
 
@@ -72,6 +116,10 @@ func (n *NDFA) GetNonEpsilonTransitions(states map[int]struct{}) map[rune]map[in
 
 func (n *NDFA) GetInitialState() int {
 	return n.initialState
+}
+
+func (n *NDFA) GetNumStates() int {
+	return n.numStates
 }
 
 func (n *NDFA) Print() {
