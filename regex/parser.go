@@ -17,7 +17,7 @@ func (p *RegexParser) NewState() int {
 	return p.maxState
 }
 
-func (p *RegexParser) Parse(regex string) *NDFA {
+func (p *RegexParser) Parse(regex string) *ENDFA {
 	for _, symbol := range regex {
 		switch symbol {
 		case '|':
@@ -30,7 +30,7 @@ func (p *RegexParser) Parse(regex string) *NDFA {
 			initialState := p.NewState()
 			finalState := p.NewState()
 
-			union := UnionExpressionsNDFA(initialState, finalState, first, second)
+			union := UnionExpressionsENDFA(initialState, finalState, first, second)
 			//union.Print()
 
 			// fmt.Printf("Pushing into stack\n")
@@ -43,7 +43,7 @@ func (p *RegexParser) Parse(regex string) *NDFA {
 			first := p.regexStack.Pop()
 
 			// fmt.Printf("Pushing into stack\n")
-			concatenation := ConcatenateExpressionsNDFA(first, second)
+			concatenation := ConcatenateExpressionsENDFA(first, second)
 			//concatenation.Print()
 
 			p.regexStack.Push(concatenation)
@@ -55,7 +55,7 @@ func (p *RegexParser) Parse(regex string) *NDFA {
 			finalState := p.NewState()
 
 			last := p.regexStack.Pop()
-			kleene := KleeneExpressionNDFA(initialState, finalState, last)
+			kleene := KleeneExpressionENDFA(initialState, finalState, last)
 			//kleene.Print()
 
 			// fmt.Printf("Pushing into stack\n")
@@ -67,7 +67,7 @@ func (p *RegexParser) Parse(regex string) *NDFA {
 			initialState := p.NewState()
 			finalState := p.NewState()
 
-			eps := EmptyExpressionNDFA(initialState, finalState)
+			eps := EmptyExpressionENDFA(initialState, finalState)
 			//eps.Print()
 			p.regexStack.Push(eps)
 
@@ -76,14 +76,14 @@ func (p *RegexParser) Parse(regex string) *NDFA {
 			finalState := p.NewState()
 
 			// fmt.Printf("Pushing into stack %c\n", symbol)
-			letter := LetterExpressionNDFA(initialState, finalState, symbol)
+			letter := LetterExpressionENDFA(initialState, finalState, symbol)
 			//letter.Print()
 			p.regexStack.Push(letter)
 		}
 	}
 
 	if p.regexStack.Len() == 0 {
-		return &NDFA{}
+		return &ENDFA{}
 	} else {
 		return p.regexStack.Pop()
 	}

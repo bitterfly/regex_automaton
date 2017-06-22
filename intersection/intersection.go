@@ -6,11 +6,11 @@ import (
 )
 
 type Intersector struct {
-	ndfa *regex.NormalNDFA
+	ndfa *regex.NDFA
 	dfa  *dfa.DFA
 }
 
-func NewIntersector(ndfa *regex.NormalNDFA, dfa *dfa.DFA) *Intersector {
+func NewIntersector(ndfa *regex.NDFA, dfa *dfa.DFA) *Intersector {
 	return &Intersector{
 		ndfa: ndfa,
 		dfa:  dfa,
@@ -28,13 +28,12 @@ func (i *Intersector) Intersect() chan string {
 }
 
 func (i *Intersector) intersect(ndfaStates map[int]struct{}, dfaState int, wordSoFar *[]rune, matched chan string) {
-	ndfaStates, isFinal := i.ndfa.EpsilonClosure(ndfaStates)
-
-	if isFinal && i.dfa.IsFinal(dfaState) {
+	if i.ndfa.HasFinal(ndfaStates) && i.dfa.IsFinal(dfaState) {
 		matched <- string(*wordSoFar)
 	}
 
-	ndfaTransitions := i.ndfa.GetNonEpsilonTransitions(ndfaStates)
+	ndfaTransitions := i.ndfa.GetDestinations(ndfaStates)
+
 	for _, transitions := range i.dfa.GetTransitions(dfaState) {
 		ndfaDestinations, ok := ndfaTransitions[transitions.GetLetter()]
 		if ok {

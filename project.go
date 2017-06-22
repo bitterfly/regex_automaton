@@ -54,20 +54,21 @@ func main() {
 	//=========== END =================
 	//=========== Read Arguments=======
 
-	if len(os.Args) < 2 || len(os.Args) > 3 {
-		fmt.Printf("usage: pka [OPTIONS] filename, %d\n", len(os.Args))
-		return
-	}
-
-	infix := flag.Bool("infix", false, "If infix is true convert expression to rpn first.")
+	infixPtr := flag.Bool("infix", false, "If infix is true convert expression to rpn first.")
+	var outputFile string
+	flag.StringVar(&outputFile, "output", "", "puke words here inseat of stdin")
 	flag.Parse()
 
-	var dict chan string
-	if *infix {
-		dict = readWord(os.Args[2])
-	} else {
-		dict = readWord(os.Args[1])
+	fmt.Println("infixPtr: ", *infixPtr)
+	fmt.Println("Output: ", outputFile)
+	fmt.Println("tail:", flag.Args())
+
+	if len(flag.Args()) == 0 {
+		fmt.Printf("usage: pka [OPTIONS] filename, %d\n", len(os.Args))
+		os.Exit(1)
 	}
+
+	dict := readWord(flag.Args()[0])
 
 	//========= GET DICTIONARY ========
 	var startTime time.Time
@@ -81,11 +82,8 @@ func main() {
 	fmt.Printf("Time: %s\n", elapsed)
 	dfa.DotGraph("dfa.dot")
 
-	if *infix {
-		dict = readWord(os.Args[2])
-	} else {
-		dict = readWord(os.Args[1])
-	}
+	dict = readWord(flag.Args()[0])
+
 	fmt.Printf("Correct language: %v\n", dfa.CheckLanguage(dict))
 	fmt.Printf("Number of states: %d\n", dfa.GetNumStates())
 	fmt.Printf("Number of eq classes: %d\n", dfa.GetNumEqClasses())
@@ -97,7 +95,7 @@ func main() {
 	fmt.Printf("Enter regular expression: \n")
 	for scanner.Scan() {
 		expression := scanner.Text()
-		if *infix {
+		if *infixPtr {
 			fmt.Printf("Converting to rpn...\n")
 			expression = rpn.ConvertToRpn(expression)
 		}
@@ -115,17 +113,33 @@ func main() {
 		ndfa.Dot("ndfa.dot")
 		//============= END ================
 
-		//intersector := intersection.NewIntersector(epsilonless, dfa)
-		intersector := intersection.NewIntersector(ndfa, dfa)
+		intersector := intersection.NewIntersector(epsilonless, dfa)
+		//intersector := intersection.NewIntersector(ndfa, dfa)
 		startTime = time.Now()
 		fmt.Printf("\nRunning intersection...\n")
 		matched := intersector.Intersect()
 
-		fmt.Printf("Matching words: \n")
 		number := 0
-		for word := range matched {
-			fmt.Printf("%s\n", word)
-			number += 1
+		if outputFile != "" {
+			output, err := os.Create(outputFile)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer output.Close()
+
+			fmt.Printf("Writing into file: %s\n", outputFile)
+
+			for word := range matched {
+				fmt.Fprintf(output, "%s\n", word)
+				number += 1
+			}
+		} else {
+			fmt.Printf("Matching words: \n")
+			for word := range matched {
+				fmt.Printf("%s\n", word)
+				number += 1
+			}
 		}
 		elapsed = time.Since(startTime)
 		fmt.Printf("Found words: %d\n", number)
