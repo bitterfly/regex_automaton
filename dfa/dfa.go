@@ -76,7 +76,6 @@ func (d *DFA) reduce(state int, checked **EquivalenceTree) {
 		d.delta.addTransition(state, child.GetLetter(), checked_state)
 	} else {
 		(*checked) = insert((*checked), &childEquivalenceNode)
-		//fmt.Printf("Tree after insert:\n %s \n", (*checked).print())
 		d.numEqClasses += 1
 	}
 }

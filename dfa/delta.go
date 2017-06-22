@@ -1,7 +1,6 @@
 package dfa
 
 import (
-	"fmt"
 	"reflect"
 	"sort"
 
@@ -46,9 +45,6 @@ func (dt *DeltaTransitions) getChildren(state int) []common.Transition {
 }
 
 func (dt *DeltaTransitions) addTransition(initialState int, letter rune, goalState int) {
-	// if goalState == 0 {
-	// 	panic("WTF")
-	// }
 	dt.transitionToState[*common.NewTransition(initialState, letter)] = goalState
 
 	children := dt.stateToTransitions[initialState]
@@ -57,34 +53,13 @@ func (dt *DeltaTransitions) addTransition(initialState int, letter rune, goalSta
 	} else {
 		dt.stateToTransitions[initialState] = append(children, *common.NewTransition(goalState, letter))
 	}
-
-	if len(dt.stateToTransitions[initialState]) > 1 {
-		if common.CompareTransition(dt.stateToTransitions[initialState][len(dt.stateToTransitions[initialState])-2], *common.NewTransition(goalState, letter)) == 1 {
-			fmt.Printf("Adding things: (%d, %c, %d)", initialState, letter, goalState)
-			fmt.Printf("Previous in other map: %v\n", dt.stateToTransitions[initialState])
-			fmt.Printf("Previous: %v\n", dt.stateToTransitions[initialState])
-			fmt.Printf("New: %v\n", *common.NewTransition(goalState, letter))
-			panic("New transition isn't bigger than previous")
-
-		}
-	}
 }
 
 func (dt *DeltaTransitions) removeTransition(initialState int, letter rune, goalState int) {
 
-	state, ok := dt.transitionToState[*common.NewTransition(initialState, letter)]
-	if ok {
-		if state != goalState {
-			panic("We are deleting the wrong thing")
-		}
-	}
 	delete(dt.transitionToState, *common.NewTransition(initialState, letter))
 
 	outgoing_transitions := dt.stateToTransitions[initialState]
-
-	if common.CompareTransition(outgoing_transitions[len(outgoing_transitions)-1], *common.NewTransition(goalState, letter)) != 0 {
-		panic("We aren't removing last transition\n")
-	}
 
 	dt.stateToTransitions[initialState] = outgoing_transitions[:len(outgoing_transitions)-1]
 	if len(dt.stateToTransitions[initialState]) == 0 {

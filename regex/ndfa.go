@@ -49,10 +49,6 @@ func (n *NDFA) GetDestinations(states map[int]struct{}) map[rune]map[int]struct{
 	for state, _ := range states {
 		//get one state and find all its children
 		for _, transition := range n.transitions[state] {
-			if transition.GetLetter() == 0 {
-				panic("Epsilon transiiton after removing them")
-			}
-
 			_, ok := destinations[transition.GetLetter()]
 			if !ok {
 				destinations[transition.GetLetter()] = make(map[int]struct{})
