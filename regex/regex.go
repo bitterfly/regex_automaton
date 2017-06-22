@@ -1,26 +1,26 @@
 package regex
 
-func EmptyExpressionNDFA(initialState, finalState int) *NDFA {
+func EmptyExpressionENDFA(initialState, finalState int) *ENDFA {
 	delta := NewMultipleEmptyTransition()
 	//            ε
 	//    -> o --------> (o)
 	//
 	delta.addTransition(initialState, 0, finalState)
 
-	return NewNDFA(initialState, 2, finalState, delta)
+	return NewENDFA(initialState, 2, finalState, delta)
 }
 
-func LetterExpressionNDFA(initialState, finalState int, letter rune) *NDFA {
+func LetterExpressionENDFA(initialState, finalState int, letter rune) *ENDFA {
 	delta := NewMultipleEmptyTransition()
 	//            a
 	//    -> o --------> (o)
 	//
 	delta.addTransition(initialState, letter, finalState)
 
-	return NewNDFA(initialState, 2, finalState, delta)
+	return NewENDFA(initialState, 2, finalState, delta)
 }
 
-func UnionExpressionsNDFA(initialState, finalState int, first, second *NDFA) *NDFA {
+func UnionExpressionsENDFA(initialState, finalState int, first, second *ENDFA) *ENDFA {
 	delta := NewMultipleEmptyTransition()
 	//                 ____________
 	//                /            \   ε
@@ -44,10 +44,10 @@ func UnionExpressionsNDFA(initialState, finalState int, first, second *NDFA) *ND
 	delta.addTransition(second.finalState, 0, finalState)
 
 	numStates := 2 + first.numStates + second.numStates
-	return NewNDFA(initialState, numStates, finalState, delta)
+	return NewENDFA(initialState, numStates, finalState, delta)
 }
 
-func ConcatenateExpressionsNDFA(first, second *NDFA) *NDFA {
+func ConcatenateExpressionsENDFA(first, second *ENDFA) *ENDFA {
 	delta := NewMultipleEmptyTransition()
 	//       ________________           _______________
 	//      /                \    ε    /               \
@@ -64,10 +64,10 @@ func ConcatenateExpressionsNDFA(first, second *NDFA) *NDFA {
 
 	numStates := first.numStates + second.numStates
 
-	return NewNDFA(first.initialState, numStates, second.finalState, delta)
+	return NewENDFA(first.initialState, numStates, second.finalState, delta)
 }
 
-func KleeneExpressionNDFA(initialState, finalState int, ndfa *NDFA) *NDFA {
+func KleeneExpressionENDFA(initialState, finalState int, ndfa *ENDFA) *ENDFA {
 	delta := NewMultipleEmptyTransition()
 	//
 	//                      ___ε____
@@ -96,5 +96,5 @@ func KleeneExpressionNDFA(initialState, finalState int, ndfa *NDFA) *NDFA {
 
 	numStates := ndfa.numStates + 2
 
-	return NewNDFA(initialState, numStates, finalState, delta)
+	return NewENDFA(initialState, numStates, finalState, delta)
 }

@@ -6,7 +6,7 @@ type (
 		length int
 	}
 	node struct {
-		value *NDFA
+		value *ENDFA
 		prev  *node
 	}
 )
@@ -24,17 +24,17 @@ func (this *Stack) Len() int {
 }
 
 // View the top item on the stack
-func (this *Stack) Peek() *NDFA {
+func (this *Stack) Peek() *ENDFA {
 	if this.length == 0 {
-		return &NDFA{}
+		return &ENDFA{}
 	}
 	return this.top.value
 }
 
 // Pop the top item of the stack and return it
-func (this *Stack) Pop() *NDFA {
+func (this *Stack) Pop() *ENDFA {
 	if this.length == 0 {
-		return &NDFA{}
+		return &ENDFA{}
 	}
 
 	n := this.top
@@ -44,7 +44,7 @@ func (this *Stack) Pop() *NDFA {
 }
 
 // Push a value onto the top of the stack
-func (this *Stack) Push(value *NDFA) {
+func (this *Stack) Push(value *ENDFA) {
 	n := &node{value, this.top}
 	this.top = n
 	this.length++

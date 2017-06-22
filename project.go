@@ -100,23 +100,31 @@ func main() {
 			expression = rpn.ConvertToRpn(expression)
 		}
 
-		startTime = time.Now()
 		parser := regex.NewRegexParser()
-
 		fmt.Printf("\nBuilding Regex Automaton...\n")
-		ndfa := parser.Parse(expression)
-		// epsilonless := ndfa.RemoveEpsilonTransitions()
-		// epsilonless.Dot("eps.dot")
+		startTime = time.Now()
+		endfa := parser.Parse(expression)
+		// ndfa := endfa.RemoveEpsilonTransitions()
+		// ndfa.Dot("eps.dot")
 
 		elapsed = time.Since(startTime)
 		fmt.Printf("Time: %s\n\n", elapsed)
-		ndfa.Dot("ndfa.dot")
+
+		fmt.Printf("\nRemoving epsilon transitions...\n")
+		startTime = time.Now()
+		ndfa := endfa.RemoveEpsilonTransitions()
+		elapsed = time.Since(startTime)
+		fmt.Printf("Time: %s\n\n", elapsed)
+
+		ndfa.Dot("eps.dot")
+
+		endfa.Dot("endfa.dot")
 		//============= END ================
 
-		//intersector := intersection.NewIntersector(epsilonless, dfa)
 		intersector := intersection.NewIntersector(ndfa, dfa)
-		startTime = time.Now()
+
 		fmt.Printf("\nRunning intersection...\n")
+		startTime = time.Now()
 		matched := intersector.Intersect()
 
 		number := 0
