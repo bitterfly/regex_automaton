@@ -51,7 +51,7 @@ func main() {
 	//=========== END =================
 	//=========== Read Arguments=======
 
-	infixPtr := flag.Bool("infix", false, "If infix is true convert expression to rpn first.")
+	infixPtr := flag.Bool("infix", true, "If infix is true convert expression to rpn first.")
 	dotPtr := flag.Bool("dot", false, "If dot is true make dot file for svg automaton.")
 	var outputFile string
 	flag.StringVar(&outputFile, "output", "", "puke words here inseat of stdin")
