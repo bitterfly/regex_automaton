@@ -78,11 +78,12 @@ func main() {
 		dfa.DotGraph("dfa.dot")
 	}
 
-	dict = readWord(flag.Args()[0])
+	//dict = readWord(flag.Args()[0])
 
-	fmt.Printf("Correct language: %v\n", dfa.CheckLanguage(dict))
+	//fmt.Printf("Correct language: %v\n", dfa.CheckLanguage(dict))
 	fmt.Printf("Number of states: %d\n", dfa.GetNumStates())
 	fmt.Printf("Number of eq classes: %d\n", dfa.GetNumEqClasses())
+	fmt.Printf("Number of transitions: %d\n", dfa.GetNumTransitions())
 	fmt.Printf("=====================\n")
 	//============= END ================
 

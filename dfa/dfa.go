@@ -18,6 +18,10 @@ type DFA struct {
 	delta        DeltaTransitions
 }
 
+func (d *DFA) GetNumTransitions() int {
+	return len(d.delta.transitionToState)
+}
+
 func EmptyDFA() *DFA {
 	return &DFA{
 		maxState:     1,
