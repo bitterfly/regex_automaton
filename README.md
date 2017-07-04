@@ -13,19 +13,22 @@ An installed version of Go.
 Mind that large queries take a lot of RAM (a.k.a. 10GB for 72MB dictionary ~ 1,000,000 words)
 
 ## Instalation
-$ go install github.com/bitterfly/pka
+
+    $ go install github.com/bitterfly/pka
+
 
 ## Running
 
-pka dictionary_file < regular_expression
 //or simply from STDIN
+
+    $ pka dictionary_file < regular_expression
 
 There are several options:
 
 * **-output** -  specifies file into which the matched words will be written
 * **-infix** - true if the regular expression is in infix notation or false for reverse polish notation. It is true by default.
 
-pka -output="matched.txt" fictionary_file < regular_expression
+    $ pka -output="matched.txt" fictionary_file < regular_expression
 
 # Regular expression format
 
@@ -48,20 +51,25 @@ The recognised special symbols are
 ### Infix:
 
 * Matches every english word:
+
 `(?|a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)*`
 
 * Matches `color` or `colour`
+
 `c.o.l.o.(u|?).r`
 
 * Non-latin (matches мама and baba)
+
 `(м|б).а.(м|б).а`
 
 ### RPN
 
 * Matches `color` or `colour`
+
 `colou?|r.....`
 
 * Non-latin (matches бира and гира)
+
 `бг|ира...`
 
 
