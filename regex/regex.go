@@ -74,7 +74,7 @@ func KleeneExpressionENDFA(initialState, finalState int, ndfa *ENDFA) *ENDFA {
 	//                     /________\__
 	//			 ε   	 /V          \ \  ε
 	//    ---> o -----> | o   NDFA    o | ----> (o)
-	//          \        \_____________/
+	//          \        \_____________/      /\
 	//           \____________________________/
 	//				           ε
 	//
