@@ -6,16 +6,13 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"runtime/pprof"
 	"time"
 
-	"github.com/bitterfly/pka/dfa"
-	"github.com/bitterfly/pka/intersection"
-	"github.com/bitterfly/pka/regex"
-	"github.com/bitterfly/pka/rpn"
+	"github.com/bitterfly/regex_automata/dfa"
+	"github.com/bitterfly/regex_automata/intersection"
+	"github.com/bitterfly/regex_automata/regex"
+	"github.com/bitterfly/regex_automata/rpn"
 )
-
-//var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
 func readWord(fileName string) chan string {
 	dict := make(chan string, 1000)
@@ -44,13 +41,12 @@ func readWord(fileName string) chan string {
 
 func main() {
 	//======== PROFILER ===============
-	f, err := os.Create("pka.prof")
-	if err != nil {
-		log.Fatal(err)
-	}
-	pprof.StartCPUProfile(f)
-	defer pprof.StopCPUProfile()
-
+	//f, err := os.Create("pka.prof")
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//pprof.StartCPUProfile(f)
+	//defer pprof.StopCPUProfile()
 	//=========== END =================
 	//=========== Read Arguments=======
 
@@ -97,24 +93,23 @@ func main() {
 		}
 
 		parser := regex.NewRegexParser()
-		fmt.Printf("\nBuilding Regex Automaton...\n")
+		// fmt.Printf("\nBuilding Regex Automaton...\n")
 		startTime = time.Now()
+		fmt.Printf("Expression: %s\n", expression)
 		endfa := parser.Parse(expression)
-		// ndfa := endfa.RemoveEpsilonTransitions()
-		// ndfa.Dot("eps.dot")
+
+		endfa.Dot("endfa.dot")
 
 		elapsed = time.Since(startTime)
-		fmt.Printf("Time: %s\n\n", elapsed)
+		// fmt.Printf("Time: %s\n\n", elapsed)
 
-		fmt.Printf("\nRemoving epsilon transitions...\n")
+		// fmt.Printf("\nRemoving epsilon transitions...\n")
 		startTime = time.Now()
 		ndfa := endfa.RemoveEpsilonTransitions()
 		elapsed = time.Since(startTime)
 		fmt.Printf("Time: %s\n\n", elapsed)
 
 		ndfa.Dot("eps.dot")
-
-		endfa.Dot("endfa.dot")
 		//============= END ================
 
 		intersector := intersection.NewIntersector(ndfa, dfa)

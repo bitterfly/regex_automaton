@@ -1,6 +1,6 @@
 package dfa
 
-import "github.com/bitterfly/pka/common"
+import "github.com/bitterfly/regex_automata/common"
 
 type EquivalenceClass struct {
 	isFinal  bool
@@ -15,7 +15,6 @@ func NewEquivalenceClass(isFinal bool, children []common.Transition) *Equivalenc
 }
 
 func CompareEquivalenceClasses(first, second *EquivalenceClass) int {
-	//the final one is bigger
 	if first.isFinal != second.isFinal {
 		if first.isFinal {
 			return 1

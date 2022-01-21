@@ -1,6 +1,6 @@
 package regex
 
-import "github.com/bitterfly/pka/common"
+import "github.com/bitterfly/regex_automata/common"
 
 type MultipleTransition struct {
 	initialState int
@@ -46,7 +46,7 @@ func (mdt *MultipleDeltaTransitions) addTransition(initialState int, letter rune
 }
 
 func (mdt *MultipleDeltaTransitions) addTransitions(other *MultipleDeltaTransitions) {
-	for k, _ := range other.triple {
+	for k := range other.triple {
 		mdt.addTransition(k.initialState, k.letter, k.goalState)
 	}
 }

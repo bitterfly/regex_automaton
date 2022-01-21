@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"sort"
 
-	"github.com/bitterfly/pka/common"
+	"github.com/bitterfly/regex_automata/common"
 )
 
 type DeltaTransitions struct {

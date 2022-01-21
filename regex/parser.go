@@ -1,5 +1,7 @@
 package regex
 
+import "fmt"
+
 type RegexParser struct {
 	maxState   int
 	regexStack *Stack
@@ -18,11 +20,12 @@ func (p *RegexParser) NewState() int {
 }
 
 func (p *RegexParser) Parse(regex string) *ENDFA {
+	fmt.Printf("Regex string: %s\n", regex)
 	for _, symbol := range regex {
 		switch symbol {
 		case '|':
-			// fmt.Println("Union\n")
-			// fmt.Printf("Pop 2 from stack")
+			fmt.Println("Union")
+			fmt.Printf("Pop 2 from stack")
 
 			second := p.regexStack.Pop()
 			first := p.regexStack.Pop()
@@ -31,25 +34,25 @@ func (p *RegexParser) Parse(regex string) *ENDFA {
 			finalState := p.NewState()
 
 			union := UnionExpressionsENDFA(initialState, finalState, first, second)
-			//union.Print()
+			union.Print()
 
-			// fmt.Printf("Pushing into stack\n")
+			fmt.Printf("Pushing into stack\n")
 			p.regexStack.Push(union)
 		case '.':
-			// fmt.Println("Concatenate\n")
-			// fmt.Printf("Pop 2 from stack\n")
+			fmt.Println("Concatenate")
+			fmt.Printf("Pop 2 from stack\n")
 
 			second := p.regexStack.Pop()
 			first := p.regexStack.Pop()
 
-			// fmt.Printf("Pushing into stack\n")
+			fmt.Printf("Pushing into stack\n")
 			concatenation := ConcatenateExpressionsENDFA(first, second)
 			//concatenation.Print()
 
 			p.regexStack.Push(concatenation)
 		case '*':
-			// fmt.Println("Kleene\n")
-			// fmt.Printf("Pop 1 from stack\n")
+			fmt.Println("Kleene")
+			fmt.Printf("Pop 1 from stack\n")
 
 			initialState := p.NewState()
 			finalState := p.NewState()
@@ -58,11 +61,11 @@ func (p *RegexParser) Parse(regex string) *ENDFA {
 			kleene := KleeneExpressionENDFA(initialState, finalState, last)
 			//kleene.Print()
 
-			// fmt.Printf("Pushing into stack\n")
+			fmt.Printf("Pushing into stack\n")
 			p.regexStack.Push(kleene)
 		case '?':
-			// fmt.Println("Epsilon\n")
-			// fmt.Printf("Pushing into stack\n")
+			fmt.Println("Epsilon")
+			fmt.Printf("Pushing into stack\n")
 
 			initialState := p.NewState()
 			finalState := p.NewState()
@@ -75,7 +78,7 @@ func (p *RegexParser) Parse(regex string) *ENDFA {
 			initialState := p.NewState()
 			finalState := p.NewState()
 
-			// fmt.Printf("Pushing into stack %c\n", symbol)
+			fmt.Printf("Pushing into stack %c\n", symbol)
 			letter := LetterExpressionENDFA(initialState, finalState, symbol)
 			//letter.Print()
 			p.regexStack.Push(letter)

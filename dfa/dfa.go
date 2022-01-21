@@ -5,7 +5,7 @@ import (
 	"os"
 	"sort"
 
-	"github.com/bitterfly/pka/common"
+	"github.com/bitterfly/regex_automata/common"
 )
 
 //states are consecutive numbers

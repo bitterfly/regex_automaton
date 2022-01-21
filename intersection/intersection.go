@@ -1,8 +1,8 @@
 package intersection
 
 import (
-	"github.com/bitterfly/pka/dfa"
-	"github.com/bitterfly/pka/regex"
+	"github.com/bitterfly/regex_automata/dfa"
+	"github.com/bitterfly/regex_automata/regex"
 )
 
 type Intersector struct {

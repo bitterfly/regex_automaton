@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bitterfly/pka/common"
+	"github.com/bitterfly/regex_automata/common"
 )
 
 type NDFA struct {
@@ -46,7 +46,7 @@ func (n *NDFA) isFinal(state int) bool {
 
 func (n *NDFA) GetDestinations(states map[int]struct{}) map[rune]map[int]struct{} {
 	destinations := make(map[rune]map[int]struct{})
-	for state, _ := range states {
+	for state := range states {
 		//get one state and find all its children
 		for _, transition := range n.transitions[state] {
 			if transition.GetLetter() == 0 {
