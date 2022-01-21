@@ -2,7 +2,7 @@
 
 This project is for the "Applications of Finite Automata" course at FMI (Faculty of Mathematics and Informatics) written in Go.
 
-It builds the minimal automaton for a given dictionary. The program then can answers queries in the form of regular expressions. It returns the words from the dictionary that match the regular expression.
+It builds the minimal automaton for a given dictionary. The program then can answer queries in the form of regular expressions. It returns the words from the dictionary that match the regular expression.
 It recognises UTF-8 symbols.
 
 # Usage:
