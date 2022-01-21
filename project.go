@@ -14,6 +14,12 @@ import (
 	"github.com/bitterfly/regex_automata/rpn"
 )
 
+func printVerbose(message string, verbose bool) {
+	if verbose {
+		fmt.Println(message)
+	}
+}
+
 func readWord(fileName string) chan string {
 	dict := make(chan string, 1000)
 	go func() {
@@ -51,70 +57,72 @@ func main() {
 	//=========== Read Arguments=======
 
 	infixPtr := flag.Bool("infix", true, "If infix is true convert expression to rpn first.")
+	verbosePtr := flag.Bool("verbose", false, "If true debug messages are print.")
+
 	var outputFile string
-	flag.StringVar(&outputFile, "output", "", "puke words here inseat of stdin")
+	flag.StringVar(&outputFile, "output", "", "Write matched words into file.")
 	flag.Parse()
 
 	if len(flag.Args()) == 0 {
-		fmt.Printf("usage: pka [OPTIONS] filename, %d\n", len(os.Args))
+		fmt.Printf("usage: pka [OPTIONS] filename\n")
+		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
 	dict := readWord(flag.Args()[0])
 
-	//========= GET DICTIONARY ========
+	//========= READ DICTIONARY ========
 	var startTime time.Time
 	var elapsed time.Duration
 
 	startTime = time.Now()
-	fmt.Printf("Building dictionary automaton.\n")
-
+	printVerbose("Building dictionary automaton.", *verbosePtr)
 	dfa := dfa.BuildDFAFromDict(dict)
 	elapsed = time.Since(startTime)
-	fmt.Printf("Time: %s\n", elapsed)
+	printVerbose(fmt.Sprintf("Time elapsed: %s", elapsed), *verbosePtr)
 	// dfa.DotGraph("dfa.dot")
 
 	dict = readWord(flag.Args()[0])
-
-	fmt.Printf("Correct language: %v\n", dfa.CheckLanguage(dict))
-	fmt.Printf("Number of states: %d\n", dfa.GetNumStates())
-	fmt.Printf("Number of eq classes: %d\n", dfa.GetNumEqClasses())
-	fmt.Printf("=====================\n")
+	printVerbose(
+		fmt.Sprintf(
+			`
+		Correct language: %v
+		Number of states: %d
+		Number of eq classes: %d
+		`, dfa.CheckLanguage(dict),
+			dfa.GetNumStates(),
+			dfa.GetNumEqClasses()),
+		*verbosePtr)
 	//============= END ================
 
 	//============ READ REGEX ==========
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Printf("Enter regular expression: \n")
+	printVerbose("Enter regular expression.", *verbosePtr)
 	for scanner.Scan() {
 		expression := scanner.Text()
 		if *infixPtr {
-			fmt.Printf("Converting to rpn...\n")
+			printVerbose("Converting to rpn...", *verbosePtr)
 			expression = rpn.ConvertToRpn(expression)
 		}
 
-		parser := regex.NewRegexParser()
-		// fmt.Printf("\nBuilding Regex Automaton...\n")
+		parser := regex.NewRegexParser(*verbosePtr)
+		printVerbose("Building Regex Automaton...", *verbosePtr)
 		startTime = time.Now()
-		fmt.Printf("Expression: %s\n", expression)
 		endfa := parser.Parse(expression)
-
-		endfa.Dot("endfa.dot")
+		// endfa.Dot("endfa.dot")
 
 		elapsed = time.Since(startTime)
-		// fmt.Printf("Time: %s\n\n", elapsed)
-
-		// fmt.Printf("\nRemoving epsilon transitions...\n")
+		printVerbose(fmt.Sprintf("Time: %s\n\n", elapsed), *verbosePtr)
+		printVerbose("Removing epsilon transitions...", *verbosePtr)
 		startTime = time.Now()
 		ndfa := endfa.RemoveEpsilonTransitions()
 		elapsed = time.Since(startTime)
-		fmt.Printf("Time: %s\n\n", elapsed)
-
-		ndfa.Dot("eps.dot")
+		printVerbose(fmt.Sprintf("Time: %s\n\n", elapsed), *verbosePtr)
+		// ndfa.Dot("eps.dot")
 		//============= END ================
 
 		intersector := intersection.NewIntersector(ndfa, dfa)
-
-		fmt.Printf("\nRunning intersection...\n")
+		printVerbose("Running intersection...", *verbosePtr)
 		startTime = time.Now()
 		matched := intersector.Intersect()
 
@@ -127,23 +135,22 @@ func main() {
 			}
 			defer output.Close()
 
-			fmt.Printf("Writing into file: %s\n", outputFile)
-
 			for word := range matched {
 				fmt.Fprintf(output, "%s\n", word)
 				number += 1
 			}
 		} else {
-			fmt.Printf("Matching words: \n")
 			for word := range matched {
 				fmt.Printf("%s\n", word)
 				number += 1
 			}
 		}
 		elapsed = time.Since(startTime)
-		fmt.Printf("Found words: %d\n", number)
-		fmt.Printf("Time: %s\n\n", elapsed)
-		fmt.Printf("=====================\n")
-		fmt.Printf("Enter regular expression: \n")
+		printVerbose(
+			fmt.Sprintf(
+				`Found words: %d
+			Time: %s`,
+				number,
+				elapsed), *verbosePtr)
 	}
 }
