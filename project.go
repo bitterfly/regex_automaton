@@ -54,7 +54,7 @@ func main() {
 	//=========== END =================
 	//=========== Read Arguments=======
 
-	infixPtr := flag.Bool("infix", false, "If infix is true convert expression to rpn first.")
+	infixPtr := flag.Bool("infix", true, "If infix is true convert expression to rpn first.")
 	var outputFile string
 	flag.StringVar(&outputFile, "output", "", "puke words here inseat of stdin")
 	flag.Parse()
@@ -76,7 +76,7 @@ func main() {
 	dfa := dfa.BuildDFAFromDict(dict)
 	elapsed = time.Since(startTime)
 	fmt.Printf("Time: %s\n", elapsed)
-	dfa.DotGraph("dfa.dot")
+	// dfa.DotGraph("dfa.dot")
 
 	dict = readWord(flag.Args()[0])
 
