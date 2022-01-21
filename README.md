@@ -18,7 +18,7 @@ The dictionary should be sorted and should not contain spaces or dashes (the das
 
 ## Installation
 
-    > go get github.com/bitterfly/regex_automaton@latest
+    > go install github.com/bitterfly/regex_automaton@latest
 
 
 ## Running
