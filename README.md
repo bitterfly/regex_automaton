@@ -16,9 +16,9 @@ Mind that large queries take a lot of RAM (a.k.a. 10GB for 72MB dictionary ~ 1,0
 
 The dictionary should be sorted and should not contain spaces or dashes (the dashes I think depend on the language and sorting).
 
-## Instalation
+## Installation
 
-    > go install github.com/bitterfly/regex_automaton@latest
+    > go get github.com/bitterfly/regex_automaton@latest
 
 
 ## Running
